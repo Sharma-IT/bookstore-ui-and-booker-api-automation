@@ -1,0 +1,150 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # A nightly full run against the deployed environment, which catches drift
+    # in the application that no commit of ours would have triggered.
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      baseUrl:
+        description: 'Environment to test'
+        required: false
+        default: 'https://demoqa.com'
+      browsers:
+        description: 'Comma separated: chromium, firefox, webkit'
+        required: false
+        default: 'chromium'
+
+env:
+  E2E_BASE_URL: ${{ inputs.baseUrl || vars.E2E_BASE_URL || 'https://demoqa.com' }}
+  E2E_BROWSERS: ${{ inputs.browsers || 'chromium' }}
+  # A shared environment is slow and occasionally drops a request. One retry
+  # keeps the pipeline usable; the flaky count in the report keeps it honest.
+  E2E_RETRIES: '1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Everything that needs no browser, so a typo or a weak test fails in under a
+  # minute rather than after the full end-to-end run.
+  verify:
+    name: Static checks, unit tests and mutation gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Stryker's incremental mode compares against the previous commit.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format
+        run: npm run format
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Mutation gate
+        run: npm run test:mutation
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: reports/mutation
+          retention-days: 14
+
+  e2e:
+    name: End to end (${{ matrix.browser }} shard ${{ matrix.shard }}/2)
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # The nightly run widens to every engine the application supports; a
+        # pull request pays only for Chromium.
+        browser: ${{ fromJSON(github.event_name == 'schedule' && '["chromium","firefox","webkit"]' || '["chromium"]') }}
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install browser
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run suite
+        run: npx playwright test --shard=${{ matrix.shard }}/2
+        env:
+          E2E_BROWSERS: ${{ matrix.browser }}
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.browser }}-${{ matrix.shard }}
+          path: blob-report
+          retention-days: 14
+
+  report:
+    name: Merged report
+    if: always()
+    needs: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: blob-report
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Merge shard reports
+        run: npx playwright merge-reports --reporter=html,junit ./blob-report
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 14
+
+      - name: Publish results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: End to end results
+          path: reports/*.xml
+          reporter: java-junit
+          fail-on-error: false
