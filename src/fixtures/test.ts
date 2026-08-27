@@ -5,7 +5,7 @@ import {
 } from '@playwright/test';
 import { AccountApi, type SeededUser } from '../api/accountApi.js';
 import { BookStoreApi } from '../api/bookStoreApi.js';
-import { HttpClient } from '../api/httpClient.js';
+import { ServiceGateway } from '../api/serviceGateway.js';
 import { type Environment, loadEnvironment } from '../config/environment.js';
 import type { Book } from '../data/catalogue.js';
 import { type TestAccount, anAccount } from '../data/testAccount.js';
@@ -70,7 +70,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
       try {
         await use(
-          await new BookStoreApi(new HttpClient(context, environment.apiTimeoutMs)).catalogue(),
+          await new BookStoreApi(new ServiceGateway(context, environment.apiTimeoutMs)).catalogue(),
         );
       } finally {
         await context.dispose();
@@ -90,11 +90,11 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   },
 
   accountApi: async ({ apiRequest, environment }, use) => {
-    await use(new AccountApi(new HttpClient(apiRequest, environment.apiTimeoutMs)));
+    await use(new AccountApi(new ServiceGateway(apiRequest, environment.apiTimeoutMs)));
   },
 
   bookStoreApi: async ({ apiRequest, environment }, use) => {
-    await use(new BookStoreApi(new HttpClient(apiRequest, environment.apiTimeoutMs)));
+    await use(new BookStoreApi(new ServiceGateway(apiRequest, environment.apiTimeoutMs)));
   },
 
   seededUser: async ({ accountApi }, use, testInfo) => {

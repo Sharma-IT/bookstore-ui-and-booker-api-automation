@@ -1,4 +1,4 @@
-import type { HttpClient } from './httpClient.js';
+import type { ServiceGateway } from './serviceGateway.js';
 import { type UserDetail, createdUserSchema, tokenSchema, userDetailSchema } from './schemas.js';
 import type { TestAccount } from '../data/testAccount.js';
 
@@ -9,7 +9,7 @@ export type SeededUser = TestAccount & {
 };
 
 export class AccountApi {
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly gateway: ServiceGateway) {}
 
   /**
    * Registers an account and authenticates it in one step. Registration is out
@@ -17,12 +17,12 @@ export class AccountApi {
    * signed-in user gets a fresh one from here.
    */
   async register(account: TestAccount): Promise<SeededUser> {
-    const created = await this.http.sendAndParse(createdUserSchema, 'post', '/Account/v1/User', {
+    const created = await this.gateway.sendAndParse(createdUserSchema, 'post', '/Account/v1/User', {
       payload: account,
       expectedStatus: [201],
     });
 
-    const authenticated = await this.http.sendAndParse(
+    const authenticated = await this.gateway.sendAndParse(
       tokenSchema,
       'post',
       '/Account/v1/GenerateToken',
@@ -38,7 +38,7 @@ export class AccountApi {
   }
 
   async detailsOf(user: SeededUser): Promise<UserDetail> {
-    return this.http.sendAndParse(userDetailSchema, 'get', `/Account/v1/User/${user.userId}`, {
+    return this.gateway.sendAndParse(userDetailSchema, 'get', `/Account/v1/User/${user.userId}`, {
       token: user.token,
       expectedStatus: [200],
     });
@@ -50,7 +50,7 @@ export class AccountApi {
    * still tears down cleanly.
    */
   async delete(user: SeededUser): Promise<void> {
-    await this.http.send('delete', `/Account/v1/User/${user.userId}`, {
+    await this.gateway.send('delete', `/Account/v1/User/${user.userId}`, {
       token: user.token,
       expectedStatus: [204, 200, 401],
     });

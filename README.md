@@ -148,7 +148,7 @@ a real engagement, and each is stated where it is relied upon.
 src/
   config/environment.ts     Environment parsed and validated once, at the boundary
   api/                      Typed service client used to seed and tear down state
-    httpClient.ts             Transport, status checking, schema validation
+    serviceGateway.ts         Timeout policy, status checks, schema validation
     accountApi.ts             Register, read, delete an account
     bookStoreApi.ts           Catalogue, add to and empty a collection
     schemas.ts                Response shapes, validated with zod

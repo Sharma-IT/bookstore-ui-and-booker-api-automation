@@ -2,7 +2,15 @@ import type { APIRequestContext, APIResponse } from '@playwright/test';
 import type { z } from 'zod';
 
 /**
- * A thin, typed seam over Playwright's request context.
+ * A gateway, in Fowler's sense: it encapsulates access to the Book Store
+ * service behind an interface shaped for this suite.
+ *
+ * It implements no transport of its own. Playwright's `APIRequestContext`
+ * performs every request, which keeps the suite on a single networking stack
+ * and means a failed call is rendered into the trace and the test report with
+ * its method, URL and headers intact. What this type adds is the three
+ * policies the suite wants on every call, and nothing else: a timeout sized
+ * for the service, an expected-status check, and schema validation.
  *
  * Test state is seeded and torn down through the service rather than the user
  * interface. That keeps each scenario focused on the behaviour it is actually
@@ -32,7 +40,7 @@ export type RequestOptions = {
 const authorisationHeaders = (token: string | undefined): Record<string, string> =>
   token === undefined ? {} : { Authorization: `Bearer ${token}` };
 
-export class HttpClient {
+export class ServiceGateway {
   /**
    * `timeoutMs` is passed on every call because a request context created
    * inside a test otherwise inherits the interface action timeout, which is a
