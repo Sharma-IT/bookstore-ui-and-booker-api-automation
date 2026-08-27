@@ -1,0 +1,8 @@
+node_modules/
+playwright-report/
+blob-report/
+reports/
+test-results/
+.stryker-tmp/
+.git/
+.env
