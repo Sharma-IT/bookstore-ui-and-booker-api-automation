@@ -26,7 +26,14 @@ export class BookDetailPage extends BasePage {
   readonly backToBookStoreButton: Locator;
   readonly loginButton: Locator;
 
-  constructor(page: Page) {
+  /**
+   * `serviceTimeoutMs` is the budget for the one action on this page that waits
+   * on the Book Store service rather than on a repaint.
+   */
+  constructor(
+    page: Page,
+    private readonly serviceTimeoutMs: number,
+  ) {
     super(page, '/books');
     this.addToCollectionButton = page.getByRole('button', { name: 'Add To Your Collection' });
     this.backToBookStoreButton = page.getByRole('button', { name: 'Back To Book Store' });
@@ -45,13 +52,19 @@ export class BookDetailPage extends BasePage {
    * Adding to a collection reports its outcome through a native dialog, which
    * Playwright auto-dismisses unless a handler is registered first. The
    * message is captured before the click so the spec can assert on it.
+   *
+   * The dialog only appears once the service has answered, so the wait carries
+   * the service budget. Left on the default it would inherit the action
+   * timeout, which is a budget for a click and too short for this round trip.
    */
   async addToCollectionAndCaptureDialog(): Promise<string> {
-    const dialogMessage = this.page.waitForEvent('dialog').then(async (dialog) => {
-      const message = dialog.message();
-      await dialog.dismiss();
-      return message;
-    });
+    const dialogMessage = this.page
+      .waitForEvent('dialog', { timeout: this.serviceTimeoutMs })
+      .then(async (dialog) => {
+        const message = dialog.message();
+        await dialog.dismiss();
+        return message;
+      });
 
     await this.addToCollectionButton.click();
 

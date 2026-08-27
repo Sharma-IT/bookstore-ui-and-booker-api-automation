@@ -75,10 +75,10 @@ leaves a valid-looking token in the browser after the identity behind it is gone
 
 **Detail** Duplicate ids in a single document, which HTML forbids:
 
-| Page | id | Occurrences | Distinct controls behind it |
-| --- | --- | --- | --- |
-| `/profile` | `submit` | 4 | Logout, Delete Account, Delete All Books (rendered twice for the responsive layout) |
-| `/books?search=<isbn>` | `userName-value` | 8 | every field value: ISBN, title, sub title, author, publisher, pages, description, website |
+| Page                   | id               | Occurrences | Distinct controls behind it                                                               |
+| ---------------------- | ---------------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `/profile`             | `submit`         | 4           | Logout, Delete Account, Delete All Books (rendered twice for the responsive layout)       |
+| `/books?search=<isbn>` | `userName-value` | 8           | every field value: ISBN, title, sub title, author, publisher, pages, description, website |
 
 **Impact** Beyond the standards breach, `document.getElementById` and every
 `#id` selector silently resolve to whichever element comes first. Any automation

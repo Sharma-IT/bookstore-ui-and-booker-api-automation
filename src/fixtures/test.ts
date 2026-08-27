@@ -138,8 +138,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     await use(new BookStorePage(page));
   },
 
-  bookDetailPage: async ({ page }, use) => {
-    await use(new BookDetailPage(page));
+  bookDetailPage: async ({ page, environment }, use) => {
+    await use(new BookDetailPage(page, environment.apiTimeoutMs));
   },
 
   profilePage: async ({ page }, use) => {

@@ -27,15 +27,15 @@ npm run test:e2e   # the browser suite
 
 `npm run verify` needs no browser and finishes in under a minute. Run it first.
 
-| Command | What it does |
-| --- | --- |
-| `npm run test:e2e` | The whole browser suite |
-| `npm run test:smoke` | The eight scenarios tagged `@smoke` |
-| `npm run test:e2e:ui` | Playwright's interactive runner |
-| `npm run test:e2e:headed` | A visible browser, for watching a scenario |
-| `npm run test:unit` | Unit tests over the pure modules |
-| `npm run test:mutation` | The mutation gate |
-| `npm run typecheck` / `lint` / `format` | Static checks |
+| Command                                 | What it does                               |
+| --------------------------------------- | ------------------------------------------ |
+| `npm run test:e2e`                      | The whole browser suite                    |
+| `npm run test:smoke`                    | The eight scenarios tagged `@smoke`        |
+| `npm run test:e2e:ui`                   | Playwright's interactive runner            |
+| `npm run test:e2e:headed`               | A visible browser, for watching a scenario |
+| `npm run test:unit`                     | Unit tests over the pure modules           |
+| `npm run test:mutation`                 | The mutation gate                          |
+| `npm run typecheck` / `lint` / `format` | Static checks                              |
 
 Configuration comes from the environment, documented in
 [`.env.example`](.env.example). Copy it to `.env` to change anything; every
@@ -57,16 +57,16 @@ inside worker processes, so an unprefixed key is silently overwritten.
 Weighed against Cypress, Selenium with Java, and WebdriverIO, on the axes that
 matter for this application and for running in a pipeline.
 
-| | Playwright | Cypress | Selenium | WebdriverIO |
-| --- | --- | --- | --- | --- |
-| Flake resistance | Auto-waiting and web-first assertions built in | Auto-waiting built in | Waiting is the author's problem | Auto-waiting built in |
-| Parallelism | Worker processes and shards, free | Parallelisation behind a paid service | Needs a Grid to operate | Workers, free |
-| API access for seeding | `APIRequestContext` in the same runner | `cy.request`, same origin constraints | A separate HTTP client and its own auth | A separate HTTP client |
-| Cross-origin and dialogs | Native | Restricted by its architecture | Native | Native |
-| Session injection | `context.addCookies`, `storageState` | Supported | Manual | Supported |
-| Triage in CI | Trace viewer, video, blob report merge | Dashboard, largely paid | Screenshots and logs | Screenshots and logs |
-| Language fit | TypeScript first | JavaScript first | Java or bindings | TypeScript supported |
-| Cost | Open source, no service | Open source, paid dashboard | Open source, Grid to host | Open source |
+|                          | Playwright                                     | Cypress                               | Selenium                                | WebdriverIO            |
+| ------------------------ | ---------------------------------------------- | ------------------------------------- | --------------------------------------- | ---------------------- |
+| Flake resistance         | Auto-waiting and web-first assertions built in | Auto-waiting built in                 | Waiting is the author's problem         | Auto-waiting built in  |
+| Parallelism              | Worker processes and shards, free              | Parallelisation behind a paid service | Needs a Grid to operate                 | Workers, free          |
+| API access for seeding   | `APIRequestContext` in the same runner         | `cy.request`, same origin constraints | A separate HTTP client and its own auth | A separate HTTP client |
+| Cross-origin and dialogs | Native                                         | Restricted by its architecture        | Native                                  | Native                 |
+| Session injection        | `context.addCookies`, `storageState`           | Supported                             | Manual                                  | Supported              |
+| Triage in CI             | Trace viewer, video, blob report merge         | Dashboard, largely paid               | Screenshots and logs                    | Screenshots and logs   |
+| Language fit             | TypeScript first                               | JavaScript first                      | Java or bindings                        | TypeScript supported   |
+| Cost                     | Open source, no service                        | Open source, paid dashboard           | Open source, Grid to host               | Open source            |
 
 Two axes decided it. First, this application keeps its state behind a REST
 service, and the ability to seed and tear that state down from inside the same
@@ -98,32 +98,32 @@ cost the business to have broken.
 
 **Covered, in depth.**
 
-- *Catalogue* (7 scenarios) — the grid matches what the service serves, columns
+- _Catalogue_ (7 scenarios) — the grid matches what the service serves, columns
   are labelled, each row carries the right author and publisher, a title opens
   its detail page with every field correct, and paging state is right at the
   single-page boundary.
-- *Search* (7) — filtering on title, author and publisher, case insensitivity,
+- _Search_ (7) — filtering on title, author and publisher, case insensitivity,
   the no-match case, that clearing restores the catalogue, and that fields the
   grid never renders are not searched.
-- *Authentication* (9) — a valid sign-in, a wrong password, an unknown account,
+- _Authentication_ (9) — a valid sign-in, a wrong password, an unknown account,
   each field's empty-value validation, the route to registration, the profile
   refusing an anonymous visitor, sign-out, and an expired session being refused.
-- *Collections* (12) — adding a book and being told so, the duplicate case, the
+- _Collections_ (12) — adding a book and being told so, the duplicate case, the
   add control being withheld from an anonymous visitor, removing one book both
   confirmed and cancelled, emptying the collection, searching within it,
   navigating back to the store, and deleting the account.
 
 **Deliberately not covered, and why.**
 
-- *Registration* — out of scope as briefed. It is also protected by a CAPTCHA,
+- _Registration_ — out of scope as briefed. It is also protected by a CAPTCHA,
   which automation should not attempt.
-- *Paging beyond one page* — the service holds eight books and the grid pages at
+- _Paging beyond one page_ — the service holds eight books and the grid pages at
   ten, so there is no second page to reach and no page-size control to change.
   Recorded as an observation in [DEFECTS.md](DEFECTS.md) rather than faked with a
   test that cannot fail.
-- *The rest of demoqa.com* — the forms, widgets and interaction demos share a
+- _The rest of demoqa.com_ — the forms, widgets and interaction demos share a
   domain with the Book Store but are unrelated to it.
-- *Visual regression* — worth adding, but it needs a stable environment. The
+- _Visual regression_ — worth adding, but it needs a stable environment. The
   public deployment carries live advertising slots that change on every load.
 
 **Assumptions made.** Each of these would need confirming with a product owner on
@@ -189,7 +189,7 @@ test('removes a single confirmed book', async ({ profilePage, accountApi, catalo
 `signedIn` registers an account through the service, writes the four session
 cookies the application uses, and deletes the account when the test finishes.
 Nothing about signing in through a form is paid for by a test that is not about
-signing in — and the tests that *are* about it drive the real form.
+signing in — and the tests that _are_ about it drive the real form.
 
 Worker-scoped fixtures hold what is genuinely shared: the catalogue is fetched
 once per worker because it is read-only.
