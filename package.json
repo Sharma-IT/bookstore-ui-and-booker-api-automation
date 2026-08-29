@@ -1,44 +1,36 @@
 {
-  "name": "demoqa-bookstore-automation",
+  "name": "qa-automation-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "UI and API-seeded test automation for the DemoQA Book Store application",
   "type": "module",
+  "description": "UI automation for the DemoQA Book Store and API automation for Restful Booker",
   "engines": {
     "node": ">=20.11.0"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "vitest run",
-    "test:unit:watch": "vitest",
-    "test:mutation": "stryker run",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "test:smoke": "playwright test --grep @smoke",
-    "report:merge": "playwright merge-reports --reporter=html,junit ./blob-report",
-    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run lint && npm run format && npm run test:unit && npm run test:mutation",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "verify": "npm run typecheck && npm run lint && npm run format && npm run test:unit && npm run test:mutation",
-    "install:browsers": "playwright install --with-deps"
+    "test:unit": "npm run test:unit --workspaces --if-present",
+    "test:mutation": "npm run test:mutation --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspace=@qa/ui-tests",
+    "test:api": "npm run test --workspace=@qa/api-tests",
+    "install:browsers": "npm run install:browsers --workspace=@qa/ui-tests"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
-    "@playwright/test": "^1.56.0",
-    "@stryker-mutator/core": "^9.0.1",
-    "@stryker-mutator/vitest-runner": "^9.0.1",
-    "@types/node": "^22.15.3",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-playwright": "^2.2.0",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.31.1",
-    "vitest": "^3.1.2",
-    "zod": "^3.24.3"
+    "typescript-eslint": "^8.31.1"
   },
   "allowScripts": {
     "esbuild@0.28.2": true

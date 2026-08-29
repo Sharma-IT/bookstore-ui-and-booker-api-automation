@@ -1,0 +1,27 @@
+{
+  "name": "@qa/ui-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "UI automation for the DemoQA Book Store application",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:mutation": "stryker run",
+    "typecheck": "tsc --noEmit",
+    "report:merge": "playwright merge-reports --reporter=html,junit ./blob-report",
+    "install:browsers": "playwright install --with-deps"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@stryker-mutator/core": "^9.0.1",
+    "@stryker-mutator/vitest-runner": "^9.0.1",
+    "@types/node": "^22.15.3",
+    "vitest": "^3.1.2",
+    "zod": "^3.24.3"
+  }
+}

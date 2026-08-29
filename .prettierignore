@@ -1,7 +1,7 @@
-node_modules/
-playwright-report/
-blob-report/
-reports/
-test-results/
-.stryker-tmp/
+**/node_modules/
+**/playwright-report/
+**/blob-report/
+**/reports/
+**/test-results/
+**/.stryker-tmp/
 package-lock.json

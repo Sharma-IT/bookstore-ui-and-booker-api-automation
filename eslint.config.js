@@ -7,12 +7,12 @@ import tseslint from 'typescript-eslint';
 export default defineConfig([
   {
     ignores: [
-      'node_modules/**',
-      'playwright-report/**',
-      'blob-report/**',
-      'reports/**',
-      'test-results/**',
-      '.stryker-tmp/**',
+      '**/node_modules/**',
+      '**/playwright-report/**',
+      '**/blob-report/**',
+      '**/reports/**',
+      '**/test-results/**',
+      '**/.stryker-tmp/**',
     ],
   },
   eslint.configs.recommended,
@@ -21,7 +21,7 @@ export default defineConfig([
   {
     languageOptions: {
       parserOptions: {
-        projectService: { allowDefaultProject: ['eslint.config.js'] },
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -46,7 +46,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['tests/**/*.spec.ts'],
+    files: ['packages/ui-tests/tests/**/*.spec.ts'],
     ...playwright.configs['flat/recommended'],
     rules: {
       ...playwright.configs['flat/recommended'].rules,
