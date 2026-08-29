@@ -157,6 +157,5 @@ Pinned by `answers 200 OK rather than 201 Created` in `tests/health.spec.ts`.
   this suite was written, all created by other people. Every scenario here
   generates a surname unique to its process, which is what lets the name-filter
   assertions be exact rather than "contains".
-- **Malformed JSON is handled correctly.** A body that is not parseable answers
-  400. This is the one negative case the service gets right, and the suite covers
+- **Malformed JSON is handled correctly.** A body that is not parseable answers 400. This is the one negative case the service gets right, and the suite covers
   it so the register is not only a list of complaints.

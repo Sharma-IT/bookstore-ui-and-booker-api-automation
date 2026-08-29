@@ -26,16 +26,16 @@ npm run test:mutation --workspace=@qa/api-tests
 
 ## Endpoint coverage
 
-| Endpoint                | Positive                                             | Negative                                                             |
-| ----------------------- | ---------------------------------------------------- | -------------------------------------------------------------------- |
-| `GET /ping`             | available, responds in time                          | status is 201 rather than 200 (A-4)                                  |
-| `POST /auth`            | issues a token; the token authorises a write         | four bad credential combinations; status should be 401 (A-1)         |
-| `GET /booking`          | lists ids; filters by name, surname and date window  | filter matching nothing; excludes deleted                            |
-| `GET /booking/{id}`     | returns the whole booking                            | absent, non-numeric, negative, zero, encoded space, fractional (A-9) |
-| `POST /booking`         | eight dataset rows; id resolves; duplicates distinct | nine malformed payloads (A-2, A-6, A-7, A-8)                         |
-| `PUT /booking/{id}`     | replaces every field                                 | partial body; absent booking; unauthenticated; merge defect (A-10)   |
-| `PATCH /booking/{id}`   | eight dataset rows; leaves other bookings untouched  | absent booking; unauthenticated                                      |
-| `DELETE /booking/{id}`  | removes; Basic auth; leaves others intact            | absent; repeated; unauthenticated; status defects (A-3, A-5)         |
+| Endpoint               | Positive                                             | Negative                                                             |
+| ---------------------- | ---------------------------------------------------- | -------------------------------------------------------------------- |
+| `GET /ping`            | available, responds in time                          | status is 201 rather than 200 (A-4)                                  |
+| `POST /auth`           | issues a token; the token authorises a write         | four bad credential combinations; status should be 401 (A-1)         |
+| `GET /booking`         | lists ids; filters by name, surname and date window  | filter matching nothing; excludes deleted                            |
+| `GET /booking/{id}`    | returns the whole booking                            | absent, non-numeric, negative, zero, encoded space, fractional (A-9) |
+| `POST /booking`        | eight dataset rows; id resolves; duplicates distinct | nine malformed payloads (A-2, A-6, A-7, A-8)                         |
+| `PUT /booking/{id}`    | replaces every field                                 | partial body; absent booking; unauthenticated; merge defect (A-10)   |
+| `PATCH /booking/{id}`  | eight dataset rows; leaves other bookings untouched  | absent booking; unauthenticated                                      |
+| `DELETE /booking/{id}` | removes; Basic auth; leaves others intact            | absent; repeated; unauthenticated; status defects (A-3, A-5)         |
 
 Authorisation is covered once, across all three mutating verbs, rather than
 repeated per endpoint: an unauthenticated `PUT`, `PATCH` and `DELETE`, a
@@ -55,7 +55,7 @@ which is where the time goes.
 
 **Assertion vocabulary.** `expectJsonSchema`, `expectJsonLike`, `expectJson` and
 `expectResponseTime` distinguish shape, subset, exact match and timing. Every
-scenario here asserts shape *and* value, because a schema alone passes on a
+scenario here asserts shape _and_ value, because a schema alone passes on a
 booking containing somebody else's details, and a value assertion alone passes
 on a response that has quietly grown or lost a field.
 
@@ -141,7 +141,7 @@ Three JSON datasets under `src/data/datasets/`:
   change nothing.
 
 The negative dataset drives a pattern worth calling out. Rows the service
-handles correctly and rows it mishandles run through the *same* assertion,
+handles correctly and rows it mishandles run through the _same_ assertion,
 against the status the service ought to return. The only difference is that a
 row with a `knownDefect` runs under `it.fails`. So the suite documents ten
 defects, stays green, and turns red the day any of them is fixed.
@@ -161,7 +161,7 @@ multi-fault message was never exercised.
 It also caught something more interesting. Several mutants in `datasets.ts` were
 reported as surviving when applying them by hand showed they broke every spec
 that imports the file. The cause was module-level parsing: a mutant that made
-the parser throw broke module *load*, which the runner could not attribute to
+the parser throw broke module _load_, which the runner could not attribute to
 any test. The datasets are now parsed on demand rather than at import, which
 fixed the misclassification and is the better design anyway, for the same reason
 the configuration module is a function and not a constant.
@@ -171,7 +171,7 @@ is a proven equivalent: every key in that schema is a flat scalar, so an issue
 path is always one segment and the separator never appears. Stryker's disable
 directive is not honoured for that construct, verified independently of
 `disableTypeChecks`, so the equivalence is recorded in a comment at the line
-rather than suppressed. The UI package's equivalent line *is* killed, because its
+rather than suppressed. The UI package's equivalent line _is_ killed, because its
 schema carries an array and produces a nested path.
 
 Mutation is scoped to the pure modules. `datasetSchemas.ts` is excluded by name:
@@ -183,13 +183,13 @@ exclusion is documented at the point of configuration and in the file itself.
 
 ## Configuration
 
-| Variable            | Default                                | Purpose                              |
-| ------------------- | -------------------------------------- | ------------------------------------ |
-| `BOOKER_BASE_URL`   | `https://restful-booker.herokuapp.com` | Service under test                   |
-| `BOOKER_TIMEOUT_MS` | `30000`                                | Per-request budget                   |
+| Variable            | Default                                | Purpose                               |
+| ------------------- | -------------------------------------- | ------------------------------------- |
+| `BOOKER_BASE_URL`   | `https://restful-booker.herokuapp.com` | Service under test                    |
+| `BOOKER_TIMEOUT_MS` | `30000`                                | Per-request budget                    |
 | `BOOKER_USERNAME`   | `admin`                                | Credentials, published by the service |
 | `BOOKER_PASSWORD`   | `password123`                          | Credentials, published by the service |
-| `BOOKER_RETRIES`    | `0`                                    | Retries, kept at zero locally        |
+| `BOOKER_RETRIES`    | `0`                                    | Retries, kept at zero locally         |
 
 Keys carry a `BOOKER_` prefix so they cannot collide with the UI package's `E2E_`
 keys, with Vite's reserved `BASE_URL`, or with anything a CI runner exports. The
