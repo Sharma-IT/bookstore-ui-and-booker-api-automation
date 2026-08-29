@@ -5,36 +5,42 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    # A nightly full run against the deployed environment, which catches drift
-    # in the application that no commit of ours would have triggered.
+    # A nightly full run against the deployed environments, which catches drift
+    # in either application that no commit of ours would have triggered.
     - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
-      baseUrl:
-        description: 'Environment to test'
+      uiBaseUrl:
+        description: 'Book Store environment to test'
         required: false
         default: 'https://demoqa.com'
+      apiBaseUrl:
+        description: 'Restful Booker environment to test'
+        required: false
+        default: 'https://restful-booker.herokuapp.com'
       browsers:
         description: 'Comma separated: chromium, firefox, webkit'
         required: false
         default: 'chromium'
 
 env:
-  E2E_BASE_URL: ${{ inputs.baseUrl || vars.E2E_BASE_URL || 'https://demoqa.com' }}
-  E2E_BROWSERS: ${{ inputs.browsers || 'chromium' }}
-  # A shared environment is slow and occasionally drops a request. One retry
-  # keeps the pipeline usable; the flaky count in the report keeps it honest.
+  E2E_BASE_URL: ${{ inputs.uiBaseUrl || vars.E2E_BASE_URL || 'https://demoqa.com' }}
+  BOOKER_BASE_URL: ${{ inputs.apiBaseUrl || vars.BOOKER_BASE_URL || 'https://restful-booker.herokuapp.com' }}
+  # Both services are shared public deployments that occasionally drop a
+  # request. One retry keeps the pipeline usable; the flaky count in the report
+  # keeps that honest.
   E2E_RETRIES: '1'
+  BOOKER_RETRIES: '1'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # Everything that needs no browser, so a typo or a weak test fails in under a
-  # minute rather than after the full end-to-end run.
+  # Everything that needs no browser and no network, so a typo or a weakened
+  # test fails in under a minute rather than after the full run.
   verify:
-    name: Static checks, unit tests and mutation gate
+    name: Static checks, unit tests and mutation gates
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -62,18 +68,48 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
-      - name: Mutation gate
+      - name: Mutation gates
         run: npm run test:mutation
 
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mutation-report
-          path: reports/mutation
+          name: mutation-reports
+          path: packages/*/reports/mutation
           retention-days: 14
 
+  # Task 2. Runs alongside the browser suite rather than after it: the two
+  # target different services and neither can affect the other.
+  api:
+    name: API suite (Restful Booker)
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # No browsers are installed for this job. That saving is the reason the
+      # two suites are separate workspace packages.
+      - run: npm ci
+
+      - name: Run API suite
+        run: npm run test:api
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-report
+          path: packages/api-tests/reports
+          retention-days: 14
+
+  # Task 1.
   e2e:
-    name: End to end (${{ matrix.browser }} shard ${{ matrix.shard }}/2)
+    name: UI suite (${{ matrix.browser }} shard ${{ matrix.shard }}/2)
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -96,9 +132,11 @@ jobs:
 
       - name: Install browser
         run: npx playwright install --with-deps ${{ matrix.browser }}
+        working-directory: packages/ui-tests
 
       - name: Run suite
         run: npx playwright test --shard=${{ matrix.shard }}/2
+        working-directory: packages/ui-tests
         env:
           E2E_BROWSERS: ${{ matrix.browser }}
 
@@ -106,11 +144,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: blob-report-${{ matrix.browser }}-${{ matrix.shard }}
-          path: blob-report
+          path: packages/ui-tests/blob-report
           retention-days: 14
 
   report:
-    name: Merged report
+    name: Merged UI report
     if: always()
     needs: e2e
     runs-on: ubuntu-latest
@@ -127,24 +165,25 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          path: blob-report
+          path: packages/ui-tests/blob-report
           pattern: blob-report-*
           merge-multiple: true
 
       - name: Merge shard reports
         run: npx playwright merge-reports --reporter=html,junit ./blob-report
+        working-directory: packages/ui-tests
 
       - uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report
+          path: packages/ui-tests/playwright-report
           retention-days: 14
 
       - name: Publish results
         if: always()
         uses: dorny/test-reporter@v1
         with:
-          name: End to end results
-          path: reports/*.xml
+          name: UI results
+          path: packages/ui-tests/reports/*.xml
           reporter: java-junit
           fail-on-error: false
