@@ -1,9 +1,9 @@
 {
-  "name": "qa-automation-monorepo",
+  "name": "bookstore-ui-and-booker-api-automation",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "UI automation for the DemoQA Book Store and API automation for Restful Booker",
+  "description": "Task 1 UI automation for the DemoQA Book Store, and Task 2 API automation for the Restful Booker service",
   "engines": {
     "node": ">=20.11.0"
   },
@@ -17,10 +17,20 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
+    "test": "npm run test:api && npm run test:e2e",
     "test:unit": "npm run test:unit --workspaces --if-present",
     "test:mutation": "npm run test:mutation --workspaces --if-present",
-    "test:e2e": "npm run test:e2e --workspace=@qa/ui-tests",
     "test:api": "npm run test --workspace=@qa/api-tests",
+    "test:api:watch": "npm run test:watch --workspace=@qa/api-tests",
+    "test:api:smoke": "npm run test:smoke --workspace=@qa/api-tests",
+    "test:api:unit": "npm run test:unit --workspace=@qa/api-tests",
+    "test:api:mutation": "npm run test:mutation --workspace=@qa/api-tests",
+    "test:e2e": "npm run test:e2e --workspace=@qa/ui-tests",
+    "test:e2e:ui": "npm run test:e2e:ui --workspace=@qa/ui-tests",
+    "test:e2e:headed": "npm run test:e2e:headed --workspace=@qa/ui-tests",
+    "test:e2e:smoke": "npm run test:smoke --workspace=@qa/ui-tests",
+    "test:e2e:unit": "npm run test:unit --workspace=@qa/ui-tests",
+    "test:e2e:mutation": "npm run test:mutation --workspace=@qa/ui-tests",
     "install:browsers": "npm run install:browsers --workspace=@qa/ui-tests"
   },
   "devDependencies": {

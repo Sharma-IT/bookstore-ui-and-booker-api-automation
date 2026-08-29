@@ -7,6 +7,7 @@
   "scripts": {
     "test": "vitest run --project=api",
     "test:watch": "vitest --project=api",
+    "test:smoke": "vitest run --project=api -t @smoke",
     "test:unit": "vitest run --project=unit",
     "test:mutation": "stryker run",
     "typecheck": "tsc --noEmit"
