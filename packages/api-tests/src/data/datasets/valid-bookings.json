@@ -1,0 +1,61 @@
+[
+  {
+    "description": "a standard paid stay with extras",
+    "firstname": "Ada",
+    "totalprice": 150,
+    "depositpaid": true,
+    "additionalneeds": "Breakfast"
+  },
+  {
+    "description": "a stay with no deposit paid",
+    "firstname": "Grace",
+    "totalprice": 275,
+    "depositpaid": false,
+    "additionalneeds": "Late checkout"
+  },
+  {
+    "description": "a stay with no additional needs supplied",
+    "firstname": "Alan",
+    "totalprice": 99,
+    "depositpaid": true,
+    "omitAdditionalNeeds": true
+  },
+  {
+    "description": "a free stay priced at zero",
+    "firstname": "Edsger",
+    "totalprice": 0,
+    "depositpaid": false,
+    "additionalneeds": "Complimentary"
+  },
+  {
+    "description": "a single night stay",
+    "firstname": "Barbara",
+    "totalprice": 80,
+    "depositpaid": true,
+    "nights": 1,
+    "additionalneeds": "Breakfast"
+  },
+  {
+    "description": "a long stay spanning a month boundary",
+    "firstname": "Katherine",
+    "totalprice": 4200,
+    "depositpaid": true,
+    "startsInDays": 25,
+    "nights": 21,
+    "additionalneeds": "Weekly housekeeping"
+  },
+  {
+    "description": "a high value stay at the upper end of realistic pricing",
+    "firstname": "Margaret",
+    "totalprice": 999999,
+    "depositpaid": true,
+    "additionalneeds": "Suite upgrade"
+  },
+  {
+    "description": "a guest with a non-ascii name",
+    "firstname": "Zoë",
+    "totalprice": 210,
+    "depositpaid": false,
+    "additionalneeds": "Café breakfast"
+  }
+]

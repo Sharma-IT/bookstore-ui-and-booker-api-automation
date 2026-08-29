@@ -1,0 +1,88 @@
+[
+  {
+    "description": "a syntactically malformed JSON body",
+    "rawBody": "{\"firstname\": \"Broken\",",
+    "expectedStatus": 400
+  },
+  {
+    "description": "an empty body",
+    "payload": {},
+    "expectedStatus": 400,
+    "knownDefect": { "id": "A-2", "actualStatus": 500 }
+  },
+  {
+    "description": "a body carrying only a first name",
+    "payload": { "firstname": "OnlyName" },
+    "expectedStatus": 400,
+    "knownDefect": { "id": "A-2", "actualStatus": 500 }
+  },
+  {
+    "description": "a body missing the stay dates",
+    "payload": {
+      "firstname": "NoDates",
+      "lastname": "Guest",
+      "totalprice": 100,
+      "depositpaid": true
+    },
+    "expectedStatus": 400,
+    "knownDefect": { "id": "A-2", "actualStatus": 500 }
+  },
+  {
+    "description": "a body missing the total price",
+    "payload": {
+      "firstname": "NoPrice",
+      "lastname": "Guest",
+      "depositpaid": true,
+      "bookingdates": { "checkin": "2030-01-01", "checkout": "2030-01-03" }
+    },
+    "expectedStatus": 400,
+    "knownDefect": { "id": "A-2", "actualStatus": 500 }
+  },
+  {
+    "description": "a body missing the deposit flag",
+    "payload": {
+      "firstname": "NoDeposit",
+      "lastname": "Guest",
+      "totalprice": 100,
+      "bookingdates": { "checkin": "2030-01-01", "checkout": "2030-01-03" }
+    },
+    "expectedStatus": 400,
+    "knownDefect": { "id": "A-2", "actualStatus": 500 }
+  },
+  {
+    "description": "a stay whose checkout precedes its checkin",
+    "payload": {
+      "firstname": "Backwards",
+      "lastname": "Guest",
+      "totalprice": 100,
+      "depositpaid": true,
+      "bookingdates": { "checkin": "2030-01-10", "checkout": "2030-01-01" }
+    },
+    "expectedStatus": 400,
+    "knownDefect": { "id": "A-6", "actualStatus": 200 }
+  },
+  {
+    "description": "a negative total price",
+    "payload": {
+      "firstname": "Negative",
+      "lastname": "Guest",
+      "totalprice": -500,
+      "depositpaid": true,
+      "bookingdates": { "checkin": "2030-01-01", "checkout": "2030-01-03" }
+    },
+    "expectedStatus": 400,
+    "knownDefect": { "id": "A-7", "actualStatus": 200 }
+  },
+  {
+    "description": "a total price sent as a string rather than a number",
+    "payload": {
+      "firstname": "Stringy",
+      "lastname": "Guest",
+      "totalprice": "one hundred",
+      "depositpaid": true,
+      "bookingdates": { "checkin": "2030-01-01", "checkout": "2030-01-03" }
+    },
+    "expectedStatus": 400,
+    "knownDefect": { "id": "A-8", "actualStatus": 200 }
+  }
+]

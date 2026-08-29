@@ -1,0 +1,34 @@
+[
+  {
+    "description": "the guest's first name alone",
+    "patch": { "firstname": "Renamed" }
+  },
+  {
+    "description": "the guest's surname alone",
+    "patch": { "lastname": "Renamed-Surname" }
+  },
+  {
+    "description": "the total price alone",
+    "patch": { "totalprice": 777 }
+  },
+  {
+    "description": "the deposit flag alone, flipped to false",
+    "patch": { "depositpaid": false }
+  },
+  {
+    "description": "the additional needs alone",
+    "patch": { "additionalneeds": "Extra pillows" }
+  },
+  {
+    "description": "both names together",
+    "patch": { "firstname": "Both", "lastname": "Names-Changed" }
+  },
+  {
+    "description": "the whole stay",
+    "patch": { "bookingdates": { "checkin": "2031-07-01", "checkout": "2031-07-08" } }
+  },
+  {
+    "description": "an empty patch, which must change nothing",
+    "patch": {}
+  }
+]
