@@ -16,11 +16,18 @@ list, built with **pactum** on **Vitest** in TypeScript.
 - Task 2 Part B, the AI-generated endpoint and its review, is in
   [`ai-assisted/`](ai-assisted/).
 
+Run from the repository root:
+
 ```bash
-npm run test:api      # from the repository root
-npm run test:unit --workspace=@qa/api-tests
-npm run test:mutation --workspace=@qa/api-tests
+npm run test:api            # the whole suite
+npm run test:api:smoke      # the eight scenarios tagged @smoke
+npm run test:api:unit       # the pure module tests
+npm run test:api:mutation   # the mutation gate
+npm run test:api:watch      # the interactive runner
 ```
+
+Or from this directory as `npm run test`, `test:smoke`, `test:unit`,
+`test:mutation` and `test:watch`, since the package owns its own scripts.
 
 ---
 

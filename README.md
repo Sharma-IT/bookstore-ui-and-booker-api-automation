@@ -1,4 +1,4 @@
-# QA automation: Book Store UI and Restful Booker API
+# Book Store UI and Restful Booker API automation
 
 Two test suites in one npm workspaces monorepo.
 
@@ -29,6 +29,22 @@ npm run test:e2e        # Task 1
 ```
 
 `npm run verify` needs no browser and finishes in about a minute. Run it first.
+`npm test` runs both suites, API first, since it is the faster of the two.
+
+Every script is available from the repository root, named for the task it
+belongs to, so neither suite has to be run by changing directory.
+
+| Task 2, Restful Booker | Task 1, Book Store  | What it runs                  |
+| ---------------------- | ------------------- | ----------------------------- |
+| `test:api`             | `test:e2e`          | The whole suite               |
+| `test:api:smoke`       | `test:e2e:smoke`    | The scenarios tagged `@smoke` |
+| `test:api:unit`        | `test:e2e:unit`     | That package's unit tests     |
+| `test:api:mutation`    | `test:e2e:mutation` | That package's mutation gate  |
+| `test:api:watch`       | `test:e2e:ui`       | The interactive runner        |
+| —                      | `test:e2e:headed`   | A visible browser             |
+
+The cross-cutting scripts, `verify`, `typecheck`, `lint`, `format`,
+`test:unit` and `test:mutation`, run across both packages.
 
 ---
 
