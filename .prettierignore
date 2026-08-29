@@ -5,3 +5,7 @@
 **/test-results/
 **/.stryker-tmp/
 package-lock.json
+
+# The unmodified AI output kept as an artefact for Task 2 Part B. Formatting it
+# would make the file no longer verbatim, which is the whole point of keeping it.
+packages/api-tests/ai-assisted/generated-patch-booking.spec.ts

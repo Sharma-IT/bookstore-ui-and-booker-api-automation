@@ -13,6 +13,9 @@ export default defineConfig([
       '**/reports/**',
       '**/test-results/**',
       '**/.stryker-tmp/**',
+      // The unmodified AI output kept as an artefact for Task 2 Part B. It is
+      // evidence of what was generated, not source, and does not compile.
+      'packages/api-tests/ai-assisted/**',
     ],
   },
   eslint.configs.recommended,
