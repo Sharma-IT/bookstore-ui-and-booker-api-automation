@@ -1,0 +1,22 @@
+{
+  "name": "@qa/api-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API automation for the Restful Booker service",
+  "scripts": {
+    "test": "vitest run --project=api",
+    "test:watch": "vitest --project=api",
+    "test:unit": "vitest run --project=unit",
+    "test:mutation": "stryker run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@stryker-mutator/core": "^9.0.1",
+    "@stryker-mutator/vitest-runner": "^9.0.1",
+    "@types/node": "^22.15.3",
+    "pactum": "^3.9.1",
+    "vitest": "^3.1.2",
+    "zod": "^3.24.3"
+  }
+}
