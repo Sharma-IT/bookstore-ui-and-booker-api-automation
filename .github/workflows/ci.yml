@@ -172,6 +172,11 @@ jobs:
       - name: Merge shard reports
         run: npx playwright merge-reports --reporter=html,junit ./blob-report
         working-directory: packages/ui-tests
+        env:
+          # `merge-reports` builds its reporters from the command line and does
+          # not inherit the `outputFile` set in playwright.config.ts, so without
+          # this the JUnit reporter writes to stdout and no file is produced.
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/e2e-junit.xml
 
       - uses: actions/upload-artifact@v7
         with:
@@ -186,4 +191,9 @@ jobs:
           name: UI results
           path: packages/ui-tests/reports/*.xml
           reporter: java-junit
+          # `fail-on-empty` is deliberately left at its default. A missing
+          # report means the merge step above is broken, which is worth failing
+          # the build for, and it is how the missing JUnit output was caught.
+          # `fail-on-error` is off because a genuine test failure is already
+          # reported by the job that ran the tests.
           fail-on-error: false
