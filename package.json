@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Task 1 UI automation for the DemoQA Book Store, and Task 2 API automation for the Restful Booker service",
   "engines": {
-    "node": ">=20.11.0"
+    "node": ">=22.0.0"
   },
   "workspaces": [
     "packages/*"
