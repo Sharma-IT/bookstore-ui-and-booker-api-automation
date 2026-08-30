@@ -30,7 +30,7 @@ export type Environment = {
 
 const withoutTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
 
-const url = z.string().url().transform(withoutTrailingSlash);
+const url = z.url().transform(withoutTrailingSlash);
 
 const booleanFlag = z.enum(['true', 'false']).transform((value) => value === 'true');
 
@@ -47,8 +47,8 @@ const environmentSchema = z
   .object({
     E2E_BASE_URL: url.default('https://demoqa.com'),
     E2E_API_BASE_URL: url.optional(),
-    E2E_BROWSERS: browserList.default('chromium'),
-    E2E_HEADLESS: booleanFlag.default('true'),
+    E2E_BROWSERS: browserList.default(['chromium']),
+    E2E_HEADLESS: booleanFlag.default(true),
     E2E_TEST_TIMEOUT_MS: positiveInteger.default(45_000),
     E2E_EXPECT_TIMEOUT_MS: positiveInteger.default(10_000),
     E2E_API_TIMEOUT_MS: positiveInteger.default(30_000),

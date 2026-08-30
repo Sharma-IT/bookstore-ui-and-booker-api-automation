@@ -28,18 +28,18 @@ export const bookListSchema = z.object({
 
 /** The service spells the identifier `userID` on create and `userId` on read. */
 export const createdUserSchema = z.object({
-  userID: z.string().uuid(),
+  userID: z.uuid(),
   username: z.string(),
 });
 
 export const tokenSchema = z.object({
   token: z.string().min(1),
-  expires: z.string().datetime(),
+  expires: z.iso.datetime(),
   status: z.literal('Success'),
 });
 
 export const userDetailSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.uuid(),
   username: z.string(),
   books: z.array(bookSchema),
 });

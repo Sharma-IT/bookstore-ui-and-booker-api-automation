@@ -93,8 +93,8 @@ describe('parseEnvironment', () => {
   // Invariant: faults are listed together and remain separately readable.
   it('reports every fault in one message', () => {
     expect(() => parseEnvironment({ BOOKER_BASE_URL: 'not-a-url', BOOKER_RETRIES: '-1' })).toThrow(
-      'Invalid API test configuration. BOOKER_BASE_URL: Invalid url; ' +
-        'BOOKER_RETRIES: Number must be greater than or equal to 0',
+      'Invalid API test configuration. BOOKER_BASE_URL: Invalid URL; ' +
+        'BOOKER_RETRIES: Too small: expected number to be >=0',
     );
   });
 });

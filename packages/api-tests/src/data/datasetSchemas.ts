@@ -44,7 +44,7 @@ export const knownDefect = z
 export const invalidBookingRow = z
   .object({
     description,
-    payload: z.record(z.unknown()).optional(),
+    payload: z.record(z.string(), z.unknown()).optional(),
     /** For bodies that cannot be expressed as an object, such as broken JSON. */
     rawBody: z.string().optional(),
     expectedStatus: z.number().int().min(400).max(599),

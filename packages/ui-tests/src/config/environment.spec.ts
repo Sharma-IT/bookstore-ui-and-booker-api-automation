@@ -96,7 +96,8 @@ describe('parseEnvironment', () => {
   // Invariant: the offending value is named in the failure.
   it('rejects an unknown browser, naming the offending position', () => {
     expect(() => parseEnvironment({ E2E_BROWSERS: 'chromium,chrome' })).toThrow(
-      "Invalid test environment configuration. E2E_BROWSERS.1: Invalid enum value. Expected 'chromium' | 'firefox' | 'webkit', received 'chrome'",
+      'Invalid test environment configuration. E2E_BROWSERS.1: ' +
+        'Invalid option: expected one of "chromium"|"firefox"|"webkit"',
     );
   });
 
@@ -159,7 +160,7 @@ describe('parseEnvironment', () => {
   // Invariant: the URL is validated, not merely copied.
   it('rejects a malformed base URL', () => {
     expect(() => parseEnvironment({ E2E_BASE_URL: 'not-a-url' })).toThrow(
-      'Invalid test environment configuration. E2E_BASE_URL: Invalid url',
+      'Invalid test environment configuration. E2E_BASE_URL: Invalid URL',
     );
   });
 });
@@ -185,8 +186,8 @@ describe('parseEnvironment failure reporting', () => {
   // Invariant: faults are listed together and remain separately readable.
   it('reports every fault in one message', () => {
     expect(() => parseEnvironment({ E2E_BASE_URL: 'not-a-url', E2E_RETRIES: '-1' })).toThrow(
-      'Invalid test environment configuration. E2E_BASE_URL: Invalid url; ' +
-        'E2E_RETRIES: Number must be greater than or equal to 0',
+      'Invalid test environment configuration. E2E_BASE_URL: Invalid URL; ' +
+        'E2E_RETRIES: Too small: expected number to be >=0',
     );
   });
 });

@@ -19,7 +19,7 @@ export type Environment = {
 
 const withoutTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
 
-const url = z.string().url().transform(withoutTrailingSlash);
+const url = z.url().transform(withoutTrailingSlash);
 
 const environmentSchema = z
   .object({
