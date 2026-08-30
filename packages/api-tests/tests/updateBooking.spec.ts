@@ -5,6 +5,15 @@ import { partialUpdates } from '../src/data/datasets.js';
 import { BOOKING_JSON_SCHEMA } from '../src/schemas/booking.js';
 import { authenticate, seedBooking } from '../src/support/seed.js';
 
+/**
+ * An identifier no booking will ever carry. The service allots ids in the low
+ * thousands, so this is far outside the range, and every use asserts that the
+ * booking is absent. It is the one value here not created by the test that
+ * uses it, and it is safe because the assertion runs in the direction the
+ * shared dataset cannot invalidate.
+ */
+const ABSENT_BOOKING_ID = 999_999_999;
+
 let token: string;
 
 beforeAll(async () => {
@@ -69,9 +78,10 @@ describe('PUT /booking/{id}', () => {
   // Case: error
   // Invariant: PUT does not create a booking at an arbitrary identifier.
   it('refuses to replace a booking that does not exist', async () => {
-    await withTokenCookie(bookingApi.replace(999_999_999, aBooking().build()), token).expectStatus(
-      405,
-    );
+    await withTokenCookie(
+      bookingApi.replace(ABSENT_BOOKING_ID, aBooking().build()),
+      token,
+    ).expectStatus(405);
   });
 });
 
@@ -113,7 +123,7 @@ describe('PATCH /booking/{id}', () => {
   // Invariant: PATCH does not create a booking.
   it('refuses to patch a booking that does not exist', async () => {
     await withTokenCookie(
-      bookingApi.update(999_999_999, { firstname: 'Ghost' }),
+      bookingApi.update(ABSENT_BOOKING_ID, { firstname: 'Ghost' }),
       token,
     ).expectStatus(405);
   });

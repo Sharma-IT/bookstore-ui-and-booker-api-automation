@@ -4,6 +4,15 @@ import { aBooking } from '../src/data/bookingBuilder.js';
 import { BOOKING_ID_LIST_JSON_SCHEMA, BOOKING_JSON_SCHEMA } from '../src/schemas/booking.js';
 import { authenticate, seedBooking } from '../src/support/seed.js';
 
+/**
+ * An identifier no booking will ever carry. The service allots ids in the low
+ * thousands, so this is far outside the range, and every use asserts that the
+ * booking is absent. It is the one value here not created by the test that
+ * uses it, and it is safe because the assertion runs in the direction the
+ * shared dataset cannot invalidate.
+ */
+const ABSENT_BOOKING_ID = 999_999_999;
+
 type BookingId = { bookingid: number };
 
 describe('GET /booking', () => {
@@ -120,7 +129,7 @@ describe('GET /booking/{id}', () => {
   // Case: error
   // Invariant: the status distinguishes absent from broken.
   it('answers 404 for an identifier that does not exist', async () => {
-    await bookingApi.getById(999_999_999).expectStatus(404);
+    await bookingApi.getById(ABSENT_BOOKING_ID).expectStatus(404);
   });
 
   // Requirement: an identifier that is not a positive integer is absent rather
@@ -137,11 +146,19 @@ describe('GET /booking/{id}', () => {
   // Invariant: the service never answers with a resource the caller did not
   // ask for.
   //
-  // Known defect A-9: `/booking/1.5` and `/booking/1.9` both answer 200 with
-  // booking 1. A caller with a rounding error is handed another guest's
-  // details and no indication anything went wrong. Remove this annotation when
-  // the service is fixed.
+  // Known defect A-9: a fractional identifier is truncated to its integer part
+  // and answers 200 with that booking. A caller with a rounding error is handed
+  // a booking it did not ask for, with a success status and no indication
+  // anything went wrong. Remove this annotation when the service is fixed.
+  //
+  // The booking is seeded rather than borrowed. An earlier version asserted
+  // against `/booking/1.5`, which depends on booking 1 existing in a shared
+  // public dataset that resets periodically. When it reset, that booking
+  // briefly did not exist, the endpoint answered 404 for the right reason by
+  // accident, and this test passed unexpectedly and failed the build.
   it.fails('answers 404 for a fractional identifier rather than truncating it', async () => {
-    await bookingApi.getById('1.5').expectStatus(404);
+    const seeded = await seedBooking();
+
+    await bookingApi.getById(`${seeded.id}.5`).expectStatus(404);
   });
 });

@@ -63,12 +63,18 @@ Pinned by `never stores a booking whose price was silently discarded` in
 
 `GET /booking/{id}`
 
-`GET /booking/1.5` and `GET /booking/1.9` both answer **200** with booking **1**.
+`GET /booking/{id}.5` answers **200** with the booking at `{id}`.
 
 The identifier is truncated rather than rejected. A caller whose arithmetic
-produces `1.5` is handed a different guest's name, dates and price, with a
-success status and no indication anything went wrong. Compare `GET /booking/-1`,
-`/0` and `/not-a-number`, which all correctly answer 404.
+produces a fraction is handed a booking it did not ask for, with a success
+status and no indication anything went wrong. Compare `GET /booking/-1`, `/0`
+and `/not-a-number`, which all correctly answer 404.
+
+The test seeds its own booking rather than naming a fixed identifier. An earlier
+version asserted against `/booking/1.5`, which quietly depended on booking 1
+existing in a dataset that resets: when it reset, the endpoint answered 404 for
+the right reason by accident, the pinned test passed unexpectedly, and the build
+went red for a defect that had not been fixed.
 
 Pinned by `answers 404 for a fractional identifier rather than truncating it` in
 `tests/readBooking.spec.ts`.

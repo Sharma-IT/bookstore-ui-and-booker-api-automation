@@ -6,6 +6,15 @@ import { authenticate, seedBooking } from '../src/support/seed.js';
 
 const { username, password } = loadEnvironment();
 
+/**
+ * An identifier no booking will ever carry. The service allots ids in the low
+ * thousands, so this is far outside the range, and every use asserts that the
+ * booking is absent. It is the one value here not created by the test that
+ * uses it, and it is safe because the assertion runs in the direction the
+ * shared dataset cannot invalidate.
+ */
+const ABSENT_BOOKING_ID = 999_999_999;
+
 let token: string;
 
 beforeAll(async () => {
@@ -52,7 +61,7 @@ describe('DELETE /booking/{id}', () => {
   // Case: error
   // Invariant: the service does not report success for work it did not do.
   it('refuses to delete a booking that does not exist', async () => {
-    await withTokenCookie(bookingApi.remove(999_999_999), token).expectStatus(405);
+    await withTokenCookie(bookingApi.remove(ABSENT_BOOKING_ID), token).expectStatus(405);
   });
 
   // Requirement: a delete is safe to repeat, which matters because a client
