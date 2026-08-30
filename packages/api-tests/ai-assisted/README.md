@@ -20,6 +20,13 @@ or datasets. That isolation is the point. The exercise measures what a generated
 test looks like before a reviewer touches it, so a version informed by the
 existing codebase would have answered a different question.
 
+## Contents
+
+- [Files](#files)
+- [The short version](#the-short-version)
+
+---
+
 ## Files
 
 | File                                                                 | What it is                                                      |

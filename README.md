@@ -5,9 +5,9 @@ Two test suites in one npm workspaces monorepo.
 | Package                                    | Task                                              | Scenarios           |
 | ------------------------------------------ | ------------------------------------------------- | ------------------- |
 | [`packages/ui-tests`](packages/ui-tests)   | **Task 1** — DemoQA Book Store UI, Playwright     | 35 browser, 72 unit |
-| [`packages/api-tests`](packages/api-tests) | **Task 2** — Restful Booker API, pactum on Vitest | 72 API, 49 unit     |
+| [`packages/api-tests`](packages/api-tests) | **Task 2** — Restful Booker API, pactum on Vitest | 72 API, 52 unit     |
 
-**228 tests. 282 mutants, 281 killed. 15 defects found across the two services**,
+**231 tests. 284 mutants, all killed. 15 defects found across the two services**,
 each pinned by a test that will fail the build when the service is fixed.
 
 Each package has its own README covering its design, scope and trade-offs, and
@@ -15,6 +15,19 @@ its own defect register:
 
 - Task 1: [README](packages/ui-tests/README.md) · [defects](packages/ui-tests/DEFECTS.md)
 - Task 2: [README](packages/api-tests/README.md) · [defects](packages/api-tests/API-DEFECTS.md) · [Part B, AI-generated endpoint](packages/api-tests/ai-assisted/)
+
+---
+
+## Contents
+
+- [Running everything](#running-everything)
+- [Why a monorepo](#why-a-monorepo)
+- [Shared engineering approach](#shared-engineering-approach)
+- [Continuous delivery](#continuous-delivery)
+- [Use of AI assistance](#use-of-ai-assistance)
+  - [What the automated gates caught](#what-the-automated-gates-caught)
+  - [What my review caught](#what-my-review-caught)
+  - [The bar it had to meet](#the-bar-it-had-to-meet)
 
 ---
 
@@ -127,3 +140,83 @@ report and one JUnit file.
 both suites run against any deployed environment with no code change. That is
 what "tied to CD infrastructure" actually requires: a suite hardcoded to one URL
 cannot gate a deployment pipeline.
+
+---
+
+## Use of AI assistance
+
+**This suite was written with the support of AI assistance.** Claude, via Claude
+Code, produced some of the code, configuration and documentation here
+under my direction and review.
+
+### What the automated gates caught
+
+These are the checks that run on every commit, and each of them caught something
+real while this suite was being built.
+
+**Live verification before code.** Nothing about the application was taken from
+the model's recollection. DemoQA has been rewritten since almost everything
+published about it: the session moved from `localStorage` to cookies, the
+ReactTable markup is gone, and the rows-per-page control no longer exists. The
+real contract was recovered by inspecting the live DOM and reading the shipped
+JavaScript bundle. A suite written from a model's memory of this site would not
+have run at all, which is the cheap failure. The expensive one is code that
+looks right, and the rest of these checks exist for that.
+
+**Mutation testing.** It found an unreachable `?? ''` fallback that would have
+silently emitted a malformed password, and a `replace(/\/+$/)` that no test
+distinguished from the weaker `replace(/\/$/)`. The first was removed in favour
+of a guard that throws, rather than suppressed.
+
+**Repeated runs, not a single green one.** Two intermittent failures turned out
+to be a click budget applied to a network round trip. Measuring the service, at
+three to eight seconds per call, showed the timeout was measuring the wrong
+thing, so the fix was a separate `E2E_API_TIMEOUT_MS`, not a larger number.
+
+**Strict static analysis.** `tsc` with `noUncheckedIndexedAccess` forced the
+`undefined` case that surfaced the dead fallback above. It also caught a config
+error that would otherwise have been silent: Vite reserves `BASE_URL` and
+populates it as `"/"` inside Vitest workers, so the original unprefixed
+environment key was being overwritten by the tooling. Every key now carries an
+`E2E_` prefix.
+
+### What my review caught
+
+Worth stating plainly, because it is the honest limit of the automated bar. Two of many
+findings in this package came from me reading the code, and no gate here
+would ever have produced them.
+
+**A type whose name claimed something false.** `HttpClient` implemented no HTTP:
+it delegated every request to Playwright's `APIRequestContext` and added a
+timeout, a status check and schema validation. Challenged in review, it was
+renamed `ServiceGateway`, and two pieces of documentation describing it as
+"transport" were corrected with it. Every gate passed both before and after. A
+name that overclaims is invisible to a compiler and expensive to a reader.
+
+**Dead configuration nobody used.** `baseUrl` and `paths` were written into the
+TypeScript config at scaffold time, mirrored into the Vitest config, and then
+never used: `grep` found zero alias imports across 58 import statements. They
+surfaced only when a reviewer hit a deprecation warning about `baseUrl` and
+asked about it. Both were deleted rather than the warning being silenced, since
+a warning about unused configuration is answered by removing the configuration.
+
+I also corrected the AI on facts it had asserted too confidently. It claimed path
+aliases would require keeping three configuration surfaces in sync; measuring it
+showed two, because Playwright reads tsconfig `paths` natively. The claim was
+wrong in a direction that supported the AI's recommendation, which is exactly the
+kind of thing a second reader is for.
+
+### The bar it had to meet
+
+The same bar as hand-written code, applied by machine wherever a machine could
+apply it, because inspection is what plausible-looking generated code is best at
+defeating.
+
+- Every line of production logic traces to a test that failed before it existed.
+- The mutation gate passes at 100%, 155 mutants, no suppressions.
+- `tsc`, ESLint and Prettier pass clean, with no `any`.
+- No fixed waits anywhere, enforced by `playwright/no-wait-for-timeout` as an
+  error rather than by convention.
+- Every defect claim in [DEFECTS.md](DEFECTS.md) is reproduced against the live
+  application.
+- The suite runs green repeatedly, not once.

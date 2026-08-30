@@ -16,6 +16,24 @@ built to run on every commit and to be read by whoever inherits it.
 
 ---
 
+## Contents
+
+- [Running it](#running-it)
+- [Critical user flows](#critical-user-flows)
+- [Why Playwright](#why-playwright)
+- [Scope, and how it was chosen](#scope-and-how-it-was-chosen)
+- [Design](#design)
+  - [Page Object Model, with assertions kept out](#page-object-model-with-assertions-kept-out)
+  - [Fixtures as dependency injection](#fixtures-as-dependency-injection)
+  - [Test data builders](#test-data-builders)
+  - [Assertion oracles, not hard-coded data](#assertion-oracles-not-hard-coded-data)
+  - [Reliability](#reliability)
+- [Test-driven, and mutation tested](#test-driven-and-mutation-tested)
+- [Continuous delivery](#continuous-delivery)
+- [What I would do next](#what-i-would-do-next)
+
+---
+
 ## Running it
 
 Run from the repository root:
@@ -54,6 +72,45 @@ E2E_BASE_URL=https://staging.example.com E2E_BROWSERS=chromium,firefox npm run t
 The keys carry an `E2E_` prefix deliberately. Vite, which underpins the unit test
 runner, reserves the bare name `BASE_URL` and populates it with its own base path
 inside worker processes, so an unprefixed key is silently overwritten.
+
+---
+
+## Critical user flows
+
+The Book Store has four flows that carry the product's value. Everything in the
+suite exists to protect one of them, and each is covered end to end by a
+scenario tagged `@smoke`, so `npm run test:e2e:smoke` exercises every one in
+about thirty seconds.
+
+**1. Browse the catalogue.** A visitor opens the store, sees every book with its
+author and publisher, and opens one to read its details. This is the only flow
+available without an account, so it is the whole product for an anonymous
+visitor and the entry point for everyone else. If it breaks, nothing else can be
+reached.
+`lists every book the service holds` · `opens the details of a selected book`
+
+**2. Find a book.** A visitor narrows the grid by title, author or publisher.
+The catalogue is small today, but search is the mechanism a reader uses to get
+anywhere, and it is the richest piece of logic in the application.
+`narrows the grid on a title fragment`
+
+**3. Sign in and reach your collection.** A registered reader signs in and lands
+on a profile showing what they hold. This flow gates every remaining piece of
+functionality, and it is where the security-relevant behaviour lives: refusing
+bad credentials without disclosing which accounts exist, and refusing an expired
+session.
+`admits a registered user` · `ends the session on sign out`
+
+**4. Build and manage a collection.** A reader adds a book from its detail page,
+finds it in their profile, and removes it again. This is the only flow that
+writes anything the reader owns, so it is where data loss would happen, and it
+is where both behavioural defects in [DEFECTS.md](DEFECTS.md) were found.
+`adds a book to the collection` · `removes a single confirmed book` ·
+`deletes the account`
+
+The flows are also the ordering principle for the suite. The four spec areas map
+onto them, the `@smoke` tag marks the shortest path through each, and a scenario
+that could not be traced back to one of the four was not written.
 
 ---
 

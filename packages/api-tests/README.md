@@ -4,7 +4,7 @@ Task 2. An API test suite covering every endpoint the
 [Restful Booker docs](https://restful-booker.herokuapp.com/apidoc/index.html)
 list, built with **pactum** on **Vitest** in TypeScript.
 
-- **72 API scenarios** across all eight endpoints, plus **49 unit tests** over
+- **72 API scenarios** across all eight endpoints, plus **52 unit tests** over
   the pure support modules.
 - **Data driven** from validated JSON datasets, with each row's description
   becoming the test name.
@@ -28,6 +28,64 @@ npm run test:api:watch      # the interactive runner
 
 Or from this directory as `npm run test`, `test:smoke`, `test:unit`,
 `test:mutation` and `test:watch`, since the package owns its own scripts.
+
+---
+
+## Contents
+
+- [Critical user flows](#critical-user-flows)
+- [Endpoint coverage](#endpoint-coverage)
+- [Why pactum](#why-pactum)
+- [Design](#design)
+- [Data driven, and what that means here](#data-driven-and-what-that-means-here)
+- [Test-driven, and mutation tested](#test-driven-and-mutation-tested)
+- [Configuration](#configuration)
+
+---
+
+## Critical user flows
+
+Restful Booker exists to let a system hold and manage hotel bookings. Four flows
+carry that value, and every scenario in the suite protects one of them. Each has
+an end-to-end scenario tagged `@smoke`, so `npm run test:api:smoke` exercises
+all four in a few seconds.
+
+**1. Confirm the service is reachable.** A caller, or a load balancer, checks
+`GET /ping` before doing anything else. It is the only unauthenticated,
+side-effect-free endpoint, and it is what a deployment pipeline gates on.
+`reports that the service is available`
+
+**2. Obtain authority to write.** A client exchanges credentials at `POST /auth`
+for a token, and that token is what every subsequent write depends on. This flow
+is where the security-relevant behaviour lives, and it holds the
+highest-severity defect found: bad credentials are answered `200 OK` (A-1), so a
+client checking the status alone proceeds as though it were authenticated.
+`issues a token for valid credentials` ·
+`issues a token that authorises a protected request`
+
+**3. Record a booking and find it again.** A booking is created, given an
+identifier, and retrieved either by that identifier or by searching on the
+guest's name. This is the core of the product: everything else operates on a
+booking that this flow produced. It is also where the data-integrity defects
+cluster, including a price silently stored as `null` (A-8) and a fractional
+identifier resolving to somebody else's booking (A-9).
+`returns an identifier that resolves to the created booking` ·
+`lists booking identifiers` · `returns the whole booking`
+
+**4. Amend or cancel a booking.** A held booking is replaced in full, amended in
+part, or removed. This is the only flow that destroys data, so it is where the
+cost of a defect is highest, and it carries the merge defect that makes
+`additionalneeds` impossible to remove through the API at all (A-10).
+`replaces the whole booking` · `updates $description` · `removes a booking`
+
+**The flows joined up.** `bookingLifecycle.spec.ts` runs all four in sequence as
+one scenario, threading each step's output into the next: the token from step 2
+authorises every write, the identifier from step 3 addresses every later call,
+and the generated surname is what step 3's search filters on. Nothing is hard
+coded between the steps. The other files exercise one endpoint each with state
+arranged by the shortest route, which means they would all still pass if the
+handover between endpoints were broken. This scenario is the one that would not.
+`threads values from authentication through to deletion`
 
 ---
 
@@ -157,8 +215,9 @@ defects, stays green, and turns red the day any of them is fixed.
 
 ## Test-driven, and mutation tested
 
-The pure modules were written test first, then mutation tested with Stryker: 126
-mutants, **99.21%**, against a 90% break threshold.
+The pure modules were written test first, then mutation tested with Stryker: 128
+mutants, **100%**, no survivors and no suppressions, against a 90% break
+threshold.
 
 Mutation testing earned its place three times here. It found a builder whose
 sequence could run backwards without any test noticing; a duplicate-description
