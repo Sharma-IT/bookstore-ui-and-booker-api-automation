@@ -49,23 +49,25 @@ const withoutBlanks = (
     ),
   );
 
+/**
+ * Renders the location of a validation issue.
+ *
+ * Every key in the schema above is a flat scalar, so today this only ever
+ * receives a single segment. It is a separate, separately tested function
+ * because rendering a path is its own contract rather than a detail of this
+ * one schema: the moment a setting becomes a list or an object, the nested
+ * case is live, and the behaviour it needs is already pinned.
+ */
+export const describeIssuePath = (path: readonly PropertyKey[]): string => path.join('.');
+
 export const parseEnvironment = (
   source: Readonly<Record<string, string | undefined>>,
 ): Environment => {
   const result = environmentSchema.safeParse(withoutBlanks(source));
 
   if (!result.success) {
-    // Every key in this schema is a flat scalar, so an issue path is always a
-    // single segment and the path separator never appears in the output. The
-    // mutation run therefore reports the separator as a surviving mutant, and
-    // it is a proven equivalent one: no input to this schema can distinguish
-    // it. The join is kept rather than simplified away because it is correct
-    // for the nested paths a future setting would produce, and because the UI
-    // package's schema, which carries an array, has a test that does
-    // distinguish it. Stryker's disable directive is not honoured for this
-    // construct, so the equivalence is recorded here rather than suppressed.
     const detail = result.error.issues
-      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+      .map((issue) => `${describeIssuePath(issue.path)}: ${issue.message}`)
       .join('; ');
 
     throw new Error(`Invalid API test configuration. ${detail}`);

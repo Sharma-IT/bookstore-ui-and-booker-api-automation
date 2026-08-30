@@ -1,5 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { loadEnvironment, parseEnvironment } from './environment.js';
+import { describeIssuePath, loadEnvironment, parseEnvironment } from './environment.js';
+
+describe('describeIssuePath', () => {
+  // Requirement: a validation failure names the setting it concerns.
+  // Case: happy-path
+  // Invariant: a single segment is rendered as itself.
+  it('renders a top level key as its own name', () => {
+    expect(describeIssuePath(['BOOKER_BASE_URL'])).toBe('BOOKER_BASE_URL');
+  });
+
+  // Requirement: a nested setting names its full location, so a fault inside a
+  // list or an object can be found rather than merely attributed to the whole
+  // setting.
+  // Case: boundary
+  // Invariant: segments are separated by a dot, in order.
+  it('joins nested segments with a dot', () => {
+    expect(describeIssuePath(['BOOKER_BROWSERS', 1])).toBe('BOOKER_BROWSERS.1');
+    expect(describeIssuePath(['credentials', 'username'])).toBe('credentials.username');
+  });
+
+  // Requirement: an issue concerning the whole document has no path.
+  // Case: boundary
+  // Invariant: an empty path renders as the empty string rather than throwing.
+  it('renders an empty path as an empty string', () => {
+    expect(describeIssuePath([])).toBe('');
+  });
+});
 
 describe('parseEnvironment', () => {
   // Requirement: the suite runs against the public deployment with no setup.
