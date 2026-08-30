@@ -18,19 +18,21 @@ built to run on every commit and to be read by whoever inherits it.
 
 ## Contents
 
-- [Running it](#running-it)
-- [Critical user flows](#critical-user-flows)
-- [Why Playwright](#why-playwright)
-- [Scope, and how it was chosen](#scope-and-how-it-was-chosen)
-- [Design](#design)
-  - [Page Object Model, with assertions kept out](#page-object-model-with-assertions-kept-out)
-  - [Fixtures as dependency injection](#fixtures-as-dependency-injection)
-  - [Test data builders](#test-data-builders)
-  - [Assertion oracles, not hard-coded data](#assertion-oracles-not-hard-coded-data)
-  - [Reliability](#reliability)
-- [Test-driven, and mutation tested](#test-driven-and-mutation-tested)
-- [Continuous delivery](#continuous-delivery)
-- [What I would do next](#what-i-would-do-next)
+- [Task 1: DemoQA Book Store UI automation](#task-1-demoqa-book-store-ui-automation)
+  - [Contents](#contents)
+  - [Running it](#running-it)
+  - [Critical user flows](#critical-user-flows)
+  - [Why Playwright](#why-playwright)
+  - [Scope, and how it was chosen](#scope-and-how-it-was-chosen)
+  - [Design](#design)
+    - [Page Object Model, with assertions kept out](#page-object-model-with-assertions-kept-out)
+    - [Fixtures as dependency injection](#fixtures-as-dependency-injection)
+    - [Test data builders](#test-data-builders)
+    - [Assertion oracles, not hard-coded data](#assertion-oracles-not-hard-coded-data)
+    - [Reliability](#reliability)
+  - [Test-driven, and mutation tested](#test-driven-and-mutation-tested)
+  - [Continuous delivery](#continuous-delivery)
+  - [What I would do next](#what-i-would-do-next)
 
 ---
 
@@ -365,6 +367,9 @@ same suite anywhere, for a pipeline that is not GitHub Actions.
   should happen next.
 - **Accessibility checks.** `@axe-core/playwright` over each page. The duplicate
   ids in D-3 suggest there is more to find.
+- **Cross-browser coverage.** `E2E_BROWSERS` drives the browser matrix, so the
+  suite can run on `chromium` in pull requests and widen to `firefox` and
+  `webkit` in nightly or environment-specific runs without a code change.
 - **Visual regression**, once there is an environment without live ad slots.
 - **A contract test against the service**, so a change in a response shape is
   caught before it surfaces as a puzzling interface failure. The schemas in
