@@ -1,33 +1,42 @@
 import { describe, expect, it } from 'vitest';
 import { bookingApi } from '../src/clients/bookerApi.js';
 import { type ValidBookingRow, invalidBookings, validBookings } from '../src/data/datasets.js';
+import type { Booking, BookingBuilder } from '../src/data/bookingBuilder.js';
 import { aBooking } from '../src/data/bookingBuilder.js';
 import { CREATED_BOOKING_JSON_SCHEMA } from '../src/schemas/booking.js';
 import { seedBooking } from '../src/support/seed.js';
 
 /**
- * A dataset row states only what makes its case distinctive. Everything else
- * comes from the builder's defaults, so a row stays readable and a change to
- * the default shape does not have to be applied nine times.
+ * A dataset row states only what makes its case distinctive, and each applier
+ * below sets a field only when the row supplies one. Anything the row omits is
+ * left to the builder, which keeps the defaults in exactly one place: repeating
+ * them here would mean two sources of truth that could drift apart silently.
  */
-const bookingFrom = (row: ValidBookingRow): ReturnType<ReturnType<typeof aBooking>['build']> => {
-  const withNames = aBooking()
-    .withFirstName(row.firstname ?? 'Ada')
-    .withTotalPrice(row.totalprice ?? 150)
-    .withDepositPaid(row.depositpaid ?? true);
+const applyScalars = (builder: BookingBuilder, row: ValidBookingRow): BookingBuilder => {
+  const named = row.firstname === undefined ? builder : builder.withFirstName(row.firstname);
+  const surnamed = row.lastname === undefined ? named : named.withLastName(row.lastname);
+  const priced = row.totalprice === undefined ? surnamed : surnamed.withTotalPrice(row.totalprice);
 
-  const withStay =
-    row.startsInDays === undefined && row.nights === undefined
-      ? withNames
-      : withNames.withStayInDays({ startsInDays: row.startsInDays ?? 1, nights: row.nights ?? 2 });
-
-  const withExtras =
-    row.omitAdditionalNeeds === true
-      ? withStay.withoutAdditionalNeeds()
-      : withStay.withAdditionalNeeds(row.additionalneeds ?? 'Breakfast');
-
-  return (row.lastname === undefined ? withExtras : withExtras.withLastName(row.lastname)).build();
+  return row.depositpaid === undefined ? priced : priced.withDepositPaid(row.depositpaid);
 };
+
+const applyStay = (builder: BookingBuilder, row: ValidBookingRow): BookingBuilder =>
+  row.startsInDays === undefined && row.nights === undefined
+    ? builder
+    : builder.withStayInDays({ startsInDays: row.startsInDays ?? 1, nights: row.nights ?? 2 });
+
+const applyExtras = (builder: BookingBuilder, row: ValidBookingRow): BookingBuilder => {
+  if (row.omitAdditionalNeeds === true) {
+    return builder.withoutAdditionalNeeds();
+  }
+
+  return row.additionalneeds === undefined
+    ? builder
+    : builder.withAdditionalNeeds(row.additionalneeds);
+};
+
+const bookingFrom = (row: ValidBookingRow): Booking =>
+  applyExtras(applyStay(applyScalars(aBooking(), row), row), row).build();
 
 describe('POST /booking', () => {
   // Requirement: a booking is created and echoed back exactly as submitted,

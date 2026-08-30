@@ -62,6 +62,14 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # A workflow is untested code until something checks it. actionlint is
+      # the fuller tool and needs Go or Docker, so the pipeline runs it here
+      # while the local script falls back to schema validation.
+      - name: Lint workflows
+        uses: docker://rhysd/actionlint:latest
+        with:
+          args: -color
+
       - name: Format
         run: npm run format
 

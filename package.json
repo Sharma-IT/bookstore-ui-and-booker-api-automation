@@ -11,12 +11,13 @@
     "packages/*"
   ],
   "scripts": {
-    "verify": "npm run typecheck && npm run lint && npm run format && npm run test:unit && npm run test:mutation",
+    "verify": "npm run typecheck && npm run lint && npm run lint:workflows && npm run format && npm run test:unit && npm run test:mutation",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
+    "lint:workflows": "action-validator .github/workflows/ci.yml",
     "test": "npm run test:api && npm run test:e2e",
     "test:unit": "npm run test:unit --workspaces --if-present",
     "test:mutation": "npm run test:mutation --workspaces --if-present",
@@ -40,7 +41,8 @@
     "eslint-plugin-playwright": "^2.2.0",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.31.1"
+    "typescript-eslint": "^8.31.1",
+    "@action-validator/cli": "^0.6.0"
   },
   "allowScripts": {
     "esbuild@0.28.2": true

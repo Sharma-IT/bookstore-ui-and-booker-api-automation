@@ -46,6 +46,10 @@ export default defineConfig([
         { allowExpressions: false, allowTypedFunctionExpressions: true },
       ],
       '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
+      // Complexity is the one dimension of "simple" that can be measured
+      // rather than asserted, so it is measured and it blocks. A function that
+      // trips this gets decomposed; the threshold does not move.
+      complexity: ['error', { max: 8 }],
     },
   },
   {
