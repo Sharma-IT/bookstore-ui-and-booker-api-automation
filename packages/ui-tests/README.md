@@ -6,6 +6,8 @@ built to run on every commit and to be read by whoever inherits it.
 - **35 end-to-end scenarios** across the catalogue, search, authentication and
   collection management, plus **72 unit tests** over the pure support modules.
 - **Playwright with TypeScript**, strict mode, no `any`.
+- **Runs on all three engines**: Chromium on every push, widening to Firefox and
+  WebKit nightly. All 35 scenarios pass on each.
 - **Page Object Model** for the interface, **fixtures as dependency injection**
   for wiring, and **test data builders** for data, with state seeded through the
   service so scenarios stay independent and parallel.
@@ -378,14 +380,16 @@ same suite anywhere, for a pipeline that is not GitHub Actions.
 
 ## What I would do next
 
+Cross-browser coverage used to sit in this list. It is now delivered and
+described under [Continuous delivery](#continuous-delivery): `E2E_BROWSERS`
+drives the matrix, pull requests pay for Chromium, the nightly widens to Firefox
+and WebKit, and all three engines pass.
+
 - **Confirm assumption 3 with a product owner.** D-2 is either a high-severity
   defect or an intentional design decision, and which one it is changes what
   should happen next.
 - **Accessibility checks.** `@axe-core/playwright` over each page. The duplicate
   ids in D-3 suggest there is more to find.
-- **Cross-browser coverage.** `E2E_BROWSERS` drives the browser matrix, so the
-  suite can run on `chromium` in pull requests and widen to `firefox` and
-  `webkit` in nightly or environment-specific runs without a code change.
 - **Visual regression**, once there is an environment without live ad slots.
 - **A contract test against the service**, so a change in a response shape is
   caught before it surfaces as a puzzling interface failure. The schemas in
