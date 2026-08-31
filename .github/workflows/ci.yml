@@ -123,6 +123,14 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
+      # Both applications are single shared free deployments. Running all six
+      # nightly jobs at once put roughly eighteen concurrent sessions through
+      # DemoQA, which pushed authentication past thirteen seconds and page
+      # loads past forty-five, so the suite was failing on load it generated
+      # itself. Two jobs at a time keeps the fan-out below what the service
+      # answers reliably. The cap costs wall-clock on a nightly run and buys a
+      # result that measures the application rather than our own traffic.
+      max-parallel: 2
       matrix:
         # The nightly run widens to every engine the application supports; a
         # pull request pays only for Chromium.
