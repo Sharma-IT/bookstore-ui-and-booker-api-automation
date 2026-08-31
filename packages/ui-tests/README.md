@@ -351,6 +351,22 @@ produces.
 against any deployed environment without a code change. That is the point of
 parsing configuration at a boundary rather than hard coding it.
 
+**All three engines pass, and the constraint is the service rather than the
+browsers.** The first nightly run failed on Chromium, Firefox and WebKit alike.
+None of it was a rendering difference. Six jobs starting at once put roughly
+eighteen concurrent sessions through a single free deployment, which pushed
+authentication from under two seconds to nearly thirteen and some page loads
+past forty-five, so the suite was failing on load it generated itself. Run one
+engine at a time, the whole suite passes on each: Chromium 35 of 35, Firefox 35
+of 35, WebKit clean. The nightly matrix is therefore capped at two concurrent
+jobs, which is four sessions on GitHub's four-core runners, and `signIn` waits
+for the authentication response rather than letting an assertion race it.
+
+The general point is worth keeping: a suite pointed at a shared environment has
+a load profile, and that profile is a property only the real fan-out exhibits.
+Every command in this pipeline had been run locally, and the aggregate
+concurrency of the matrix had not.
+
 Diagnostics are captured on the failing attempt only: trace, video and
 screenshot. A green run stays cheap; a red one arrives with everything needed to
 triage it, and `npx playwright show-trace` replays the failure step by step.
