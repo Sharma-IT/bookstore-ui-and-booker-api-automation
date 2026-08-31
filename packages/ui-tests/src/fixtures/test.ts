@@ -130,8 +130,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     await use(seededUser);
   },
 
-  loginPage: async ({ page }, use) => {
-    await use(new LoginPage(page));
+  loginPage: async ({ page, environment }, use) => {
+    await use(new LoginPage(page, environment.apiTimeoutMs));
   },
 
   bookStorePage: async ({ page }, use) => {
