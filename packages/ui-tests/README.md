@@ -380,11 +380,6 @@ same suite anywhere, for a pipeline that is not GitHub Actions.
 
 ## What I would do next
 
-Cross-browser coverage used to sit in this list. It is now delivered and
-described under [Continuous delivery](#continuous-delivery): `E2E_BROWSERS`
-drives the matrix, pull requests pay for Chromium, the nightly widens to Firefox
-and WebKit, and all three engines pass.
-
 - **Confirm assumption 3 with a product owner.** D-2 is either a high-severity
   defect or an intentional design decision, and which one it is changes what
   should happen next.
