@@ -1,5 +1,6 @@
 import type { APIRequestContext, APIResponse } from '@playwright/test';
 import type { z } from 'zod';
+import { describeIssues } from '../validation/issueDescriptions.js';
 
 /**
  * A gateway, in Fowler's sense: it encapsulates access to the Book Store
@@ -89,9 +90,7 @@ export class ServiceGateway {
         method.toUpperCase(),
         path,
         response.status(),
-        `unexpected response shape: ${result.error.issues
-          .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
-          .join('; ')}`,
+        `unexpected response shape: ${describeIssues(result.error).join('; ')}`,
       );
     }
 

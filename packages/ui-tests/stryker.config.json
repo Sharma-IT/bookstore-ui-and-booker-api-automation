@@ -11,7 +11,12 @@
   "coverageAnalysis": "perTest",
   "timeoutMS": 20000,
   "concurrency": 4,
-  "mutate": ["src/data/**/*.ts", "src/config/**/*.ts", "!src/**/*.spec.ts"],
+  "mutate": [
+    "src/data/**/*.ts",
+    "src/config/**/*.ts",
+    "src/validation/**/*.ts",
+    "!src/**/*.spec.ts"
+  ],
   "ignorePatterns": ["node_modules", "playwright-report", "blob-report", "reports", "test-results"],
   "thresholds": {
     "high": 100,

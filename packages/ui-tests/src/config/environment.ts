@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { describeIssues } from '../validation/issueDescriptions.js';
 
 /**
  * The process environment is a trust boundary: it arrives as untyped strings
@@ -83,11 +84,9 @@ export const parseEnvironment = (
   const result = environmentSchema.safeParse(withoutBlanks(source));
 
   if (!result.success) {
-    const detail = result.error.issues
-      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
-      .join('; ');
-
-    throw new Error(`Invalid test environment configuration. ${detail}`);
+    throw new Error(
+      `Invalid test environment configuration. ${describeIssues(result.error).join('; ')}`,
+    );
   }
 
   return result.data;
