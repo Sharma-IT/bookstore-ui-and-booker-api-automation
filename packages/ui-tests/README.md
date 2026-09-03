@@ -512,6 +512,11 @@ fail on a nine-pixel body shift.
 - **Take TypeScript to 7 once the linter can follow.** `typescript-eslint` 8.69
   caps its peer range at `<6.1.0`, so the upgrade currently costs the entire
   lint layer. Worth revisiting when they ship support rather than now.
+- **Take vitest to 5 once Stryker can drive it.** `@stryker-mutator/vitest-runner`
+  10 declares `vitest >=2.0.0` and does not honour it: under vitest 5 a cold
+  mutation run scores 22% where vitest 4 scores 100%, because the runner stops
+  killing mutants rather than because the tests weakened. Re-measure against a
+  cold run rather than trusting the manifest.
 - **Extend the contract tests to response headers**, in particular the
   content-type and cache headers the interface relies on and nothing asserts.
 - **Publish the mutation and test reports** to somewhere durable, so the trend is

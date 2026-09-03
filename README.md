@@ -119,6 +119,14 @@ has to remember to re-check. The alternative, asserting the buggy behaviour,
 would encode the bug as the requirement and make fixing the service break the
 suite.
 
+The pipeline caches Stryker's incremental file between runs, keyed on the
+lockfile and both Stryker configs. Incremental mode watches source and test
+files and knows nothing about dependencies, so a runner whose behaviour changed
+under a new version would otherwise carry old verdicts forward and report a
+passing score for a suite that had stopped killing anything. Hashing the
+lockfile into the key forces a cold run whenever a dependency moves, which is
+the one case incremental mode cannot reason about.
+
 **Thresholds are never relaxed to get green.** When a guard trips, the first
 question is whether the regression is real or the measurement is wrong. Two
 timeout failures in Task 1 turned out to be a click budget applied to a network

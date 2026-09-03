@@ -17,7 +17,7 @@
     "@stryker-mutator/vitest-runner": "^10.0.0",
     "@types/node": "^24.13.3",
     "pactum": "^3.9.1",
-    "vitest": "^5.0.0",
+    "vitest": "^4.1.11",
     "zod": "^4.5.4"
   }
 }

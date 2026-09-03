@@ -81,6 +81,26 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
+      # Both Stryker configs already set `incremental: true`, but the file it
+      # keeps lives under `reports/`, which is not committed, so without this
+      # every run starts cold and re-mutates everything.
+      #
+      # The key deliberately hashes the lockfile and both Stryker configs.
+      # Incremental mode tracks changes to source and test files and knows
+      # nothing about dependencies, so a runner that changes behaviour under a
+      # new version carries its old verdicts forward and reports a passing
+      # score for a suite that no longer kills anything. That is not
+      # hypothetical: it is how the vitest 5 upgrade looked green locally while
+      # a cold run scored 22%. A dependency or config change now busts the
+      # cache and forces the full run that would have caught it.
+      - name: Restore mutation cache
+        uses: actions/cache@v6
+        with:
+          path: packages/*/reports/mutation/stryker-incremental.json
+          key: stryker-${{ runner.os }}-${{ hashFiles('package-lock.json', 'packages/*/stryker.config.json') }}-${{ github.sha }}
+          restore-keys: |
+            stryker-${{ runner.os }}-${{ hashFiles('package-lock.json', 'packages/*/stryker.config.json') }}-
+
       - name: Mutation gates
         run: npm run test:mutation
 
