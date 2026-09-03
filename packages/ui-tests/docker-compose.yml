@@ -1,14 +1,35 @@
 services:
   e2e:
-    build: .
+    build:
+      # The repository root, because this is an npm workspace and the lockfile
+      # lives there. See the comment at the top of the Dockerfile.
+      context: ../..
+      dockerfile: packages/ui-tests/Dockerfile
     environment:
       E2E_BASE_URL: ${E2E_BASE_URL:-https://demoqa.com}
       E2E_BROWSERS: ${E2E_BROWSERS:-chromium}
       E2E_RETRIES: ${E2E_RETRIES:-0}
       CI: 'true'
     volumes:
-      - ./reports:/suite/reports
-      - ./blob-report:/suite/blob-report
+      - ./reports:/repo/packages/ui-tests/reports
+      - ./blob-report:/repo/packages/ui-tests/blob-report
     # A container gets one CPU per worker; leaving this unset lets Playwright
     # size itself to whatever the host grants.
+    init: true
+
+  # Records the screenshot baselines and writes them back to the working tree.
+  # The image is the one the pipeline builds, so the baselines it produces are
+  # the ones the pipeline compares against. Run it with:
+  #
+  #   docker compose run --rm visual-baselines
+  visual-baselines:
+    build:
+      context: ../..
+      dockerfile: packages/ui-tests/Dockerfile
+    environment:
+      E2E_BASE_URL: ${E2E_BASE_URL:-https://demoqa.com}
+      CI: 'true'
+    volumes:
+      - ./tests/visual:/repo/packages/ui-tests/tests/visual
+    command: ['--grep', '@visual', '--update-snapshots']
     init: true

@@ -22,6 +22,11 @@ on:
         description: 'Comma separated: chromium, firefox, webkit'
         required: false
         default: 'chromium'
+      recordVisualBaselines:
+        description: 'Re-record the screenshot baselines and upload them as an artifact'
+        required: false
+        type: boolean
+        default: false
 
 env:
   E2E_BASE_URL: ${{ inputs.uiBaseUrl || vars.E2E_BASE_URL || 'https://demoqa.com' }}
@@ -150,12 +155,10 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: packages/ui-tests
 
-      # `--grep-invert @visual` mirrors the `test:e2e` script. Screenshot
-      # baselines are per operating system, and the set committed here was
-      # recorded on Windows, so a Linux runner would fail every appearance
-      # check for a missing baseline rather than for a real difference. See
-      # "Visual regression" in the package README for the one command that
-      # records the Linux set and the two lines that then delete this flag.
+      # Appearance checks are excluded here and run in the `visual` job below,
+      # inside the Docker image, because a screenshot baseline is only valid
+      # for the exact rendering stack that produced it. Behaviour is what this
+      # job measures, and behaviour does not depend on font rasterisation.
       - name: Run suite
         run: npx playwright test --grep-invert @visual --shard=${{ matrix.shard }}/2
         working-directory: packages/ui-tests
@@ -168,6 +171,66 @@ jobs:
           name: blob-report-${{ matrix.browser }}-${{ matrix.shard }}
           path: packages/ui-tests/blob-report
           retention-days: 14
+
+  # Appearance, in the image rather than on the runner.
+  #
+  # A screenshot baseline is only valid for the rendering stack that produced
+  # it: a different font package or freetype build moves glyphs by a pixel and
+  # every comparison fails for a reason that is not a regression. Pinning the
+  # container pins that stack, so the baselines committed to the repository are
+  # the ones this job compares against, whoever runs it and whenever.
+  #
+  # Building the image here rather than only publishing it also means the
+  # Dockerfile is exercised on every run. It is the only thing that proves the
+  # container route in the README still works.
+  visual:
+    name: Appearance (Playwright container)
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the suite image
+        run: docker build -f packages/ui-tests/Dockerfile -t bookstore-ui-tests .
+
+      # The snapshot directory is mounted so a recording run writes the
+      # baselines back out where the upload step can collect them. On an
+      # ordinary run nothing is written and the mount is inert.
+      - name: Run appearance checks
+        run: |
+          # Built as positional parameters so every expansion stays quoted:
+          # an unquoted ${RECORD:+...} is what shellcheck objects to, and
+          # quoting it would pass an empty argument on an ordinary run.
+          set -- --grep @visual
+          if [ -n "${RECORD}" ]; then set -- "$@" --update-snapshots; fi
+          docker run --rm \
+            -e CI=true \
+            -e "E2E_BASE_URL=${E2E_BASE_URL}" \
+            -v "${PWD}/packages/ui-tests/tests/visual:/repo/packages/ui-tests/tests/visual" \
+            -v "${PWD}/packages/ui-tests/reports:/repo/packages/ui-tests/reports" \
+            bookstore-ui-tests "$@"
+        env:
+          RECORD: ${{ inputs.recordVisualBaselines && '1' || '' }}
+
+      # Only meaningful on a recording run, and harmless otherwise: on an
+      # ordinary run the directory is unchanged and the artifact simply matches
+      # what is already committed.
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-baselines
+          path: packages/ui-tests/tests/visual/**/*-snapshots/**
+          retention-days: 14
+          if-no-files-found: warn
+
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-diff
+          path: packages/ui-tests/reports
+          retention-days: 14
+          if-no-files-found: ignore
 
   report:
     name: Merged UI report

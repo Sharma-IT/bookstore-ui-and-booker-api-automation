@@ -65,8 +65,8 @@ scripts. The table below names them.
 | `test:smoke`         | The twelve scenarios tagged `@smoke`        |
 | `test:e2e:ui`        | Playwright's interactive runner             |
 | `test:e2e:headed`    | A visible browser, for watching a scenario  |
-| `test:visual`        | Appearance checks, excluded from `test:e2e` |
-| `test:visual:update` | Re-record the screenshot baselines          |
+| `test:visual`        | Appearance checks, in Docker (needs Docker) |
+| `test:visual:update` | Re-record the baselines, also in Docker     |
 | `test:unit`          | Unit tests over the pure modules            |
 | `test:mutation`      | The mutation gate                           |
 | `typecheck`          | Type check this package                     |
@@ -379,7 +379,16 @@ screenshot. A green run stays cheap; a red one arrives with everything needed to
 triage it, and `npx playwright show-trace` replays the failure step by step.
 
 A [`Dockerfile`](Dockerfile) pinned to the matching Playwright release runs the
-same suite anywhere, for a pipeline that is not GitHub Actions.
+same suite anywhere, for a pipeline that is not GitHub Actions. Build it from
+the repository root, because this is an npm workspace and the lockfile lives
+there:
+
+```bash
+docker build -f packages/ui-tests/Dockerfile -t bookstore-ui-tests .
+```
+
+The `visual` job builds this image on every run, so it is covered by the
+pipeline rather than trusted to still work.
 
 ---
 
@@ -459,30 +468,39 @@ lands agree with each other while disagreeing with the baseline. Waiting on the
 conditions themselves is what took the suite from one failure in six runs to six
 clean runs in six.
 
-**Screenshot baselines are per operating system**, because font rasterisation
-differs, and the set committed here was recorded on Windows. The pipeline runs
-on Linux, so the appearance checks are excluded from the default gate by
-`--grep-invert @visual` in both the `test:e2e` script and the workflow. They are
-not half-finished: they pass, they fail on a nine-pixel shift, and they run on
-demand.
+#### Baselines come from the container, not from a laptop
 
-To bring them into the gate, record a Linux set once, on the same Playwright
-version the pipeline pins, commit it beside the Windows set, and then delete
-`--grep-invert @visual` from the `test:e2e` script and from the `Run suite` step
-in the workflow. Playwright names baselines by platform, so the two sets sit
-side by side and neither disturbs the other.
+A screenshot baseline is only valid for the rendering stack that produced it. A
+different font package or freetype build moves glyphs by a pixel, and every
+comparison then fails for a reason that is not a regression. Recording on
+whichever machine happened to run the suite last makes the baseline a property
+of that laptop.
 
-Two routes. Run `playwright test --grep @visual --update-snapshots` inside
-`mcr.microsoft.com/playwright:v1.62.1-noble`, installing dependencies **inside**
-the container rather than mounting a host `node_modules`, which carries
-platform-specific binaries and browsers that will not run there. Or add a
-one-off `workflow_dispatch` job that runs the same command on the existing
-Ubuntu runner and uploads the `-snapshots` directory as an artifact to commit.
+So the appearance checks only ever run inside the image pinned in the
+[`Dockerfile`](Dockerfile), on the host and in the pipeline alike, and the
+committed baselines carry the `-linux` suffix that image produces. `test:e2e`
+keeps `--grep-invert @visual`, because running these against a host browser is
+exactly what produces a baseline nobody else can reproduce. The `visual` job in
+the pipeline builds the image and runs them, which also means the Dockerfile is
+exercised on every run rather than rotting quietly.
 
-Neither invocation is written out here because neither was executed: Docker was
-not available on the machine this was built on, and publishing a command nobody
-has run is how untested instructions get into a README. The requirement is
-exact; the incantation is for whoever has a Linux runner in front of them.
+```bash
+npm run test:visual          # verify against the committed baselines
+npm run test:visual:update   # re-record them after a deliberate design change
+```
+
+Both go through `docker compose`, so they need Docker running and nothing else.
+Re-record only when a change to the application is intended, and read the diff
+in the pull request before accepting it: a baseline commit is the one place a
+visual regression can be waved through by accident.
+
+The pipeline can also record them, for anyone without Docker to hand. Run the
+workflow manually with **recordVisualBaselines** ticked, and it uploads the
+`-snapshots` directory as an artifact to commit.
+
+Measured, on the machine this was written: the image builds from a clean
+context, five checks pass, three consecutive verifying runs agree, and all five
+fail on a nine-pixel body shift.
 
 ---
 
@@ -491,13 +509,9 @@ exact; the incantation is for whoever has a Linux runner in front of them.
 - **Confirm assumption 3 with a product owner.** D-2 is either a high-severity
   defect or an intentional design decision, and which one it is changes what
   should happen next.
-- **Record the Linux screenshot baselines**, so the appearance checks join the
-  default gate instead of being excluded from it. The one command, and the two
-  lines it lets you delete, are in [Visual regression](#visual-regression) below.
-- **Fix the Dockerfile.** It copies `package-lock.json` from this package, and
-  the only lockfile is at the workspace root, so `docker build` cannot succeed
-  as written. The build context needs to be the repository root. Worth doing on
-  its own account, and it is also the route to the Linux baselines above.
+- **Take TypeScript to 7 once the linter can follow.** `typescript-eslint` 8.69
+  caps its peer range at `<6.1.0`, so the upgrade currently costs the entire
+  lint layer. Worth revisiting when they ship support rather than now.
 - **Extend the contract tests to response headers**, in particular the
   content-type and cache headers the interface relies on and nothing asserts.
 - **Publish the mutation and test reports** to somewhere durable, so the trend is

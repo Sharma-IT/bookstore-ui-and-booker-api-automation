@@ -9,8 +9,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:smoke": "playwright test --grep @smoke",
-    "test:visual": "playwright test --grep @visual",
-    "test:visual:update": "playwright test --grep @visual --update-snapshots",
+    "test:visual": "docker compose run --rm e2e --grep @visual",
+    "test:visual:update": "docker compose run --rm visual-baselines",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:mutation": "stryker run",
@@ -25,7 +25,7 @@
     "@stryker-mutator/core": "^10.0.0",
     "@stryker-mutator/vitest-runner": "^10.0.0",
     "@types/node": "^24.13.3",
-    "vitest": "^4.1.11",
+    "vitest": "^5.0.0",
     "zod": "^4.5.4"
   }
 }

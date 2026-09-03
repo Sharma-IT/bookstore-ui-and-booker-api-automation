@@ -19,10 +19,12 @@ import { bookByIsbn } from '../../src/data/catalogue.js';
  * strictly. `maxDiffPixelRatio` in the Playwright config exists for
  * antialiasing, not for content.
  *
- * Baselines are per platform and per browser, and Playwright names the files
- * accordingly. A baseline recorded on one operating system will not match a run
- * on another, because font rasterisation differs; see the README for how to
- * record the set the pipeline needs.
+ * These run only inside the Playwright image pinned in the Dockerfile, on a
+ * laptop and in the pipeline alike, and `test:e2e` excludes them for that
+ * reason. A baseline is only valid for the rendering stack that produced it, so
+ * recording one against a host browser produces a file nobody else can
+ * reproduce. `npm run test:visual` and `npm run test:visual:update` both go
+ * through Docker.
  */
 
 /**

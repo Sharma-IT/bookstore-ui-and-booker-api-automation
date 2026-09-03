@@ -1,0 +1,17 @@
+# The build context is this directory, so everything the image should not carry
+# is excluded here. node_modules in particular: the host tree holds binaries and
+# browsers built for the host platform, and copying them into a Linux image
+# would shadow the ones `npm ci` installs.
+node_modules/
+**/node_modules/
+
+# Outputs, all regenerated inside the container.
+**/playwright-report/
+**/blob-report/
+**/reports/
+**/test-results/
+**/.stryker-tmp/
+
+.git/
+**/.env
+*.log

@@ -35,14 +35,14 @@
     "install:browsers": "npm run install:browsers --workspace=@qa/ui-tests"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
-    "eslint": "^9.25.1",
+    "@action-validator/cli": "^0.6.0",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-playwright": "^2.2.0",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.31.1",
-    "@action-validator/cli": "^0.6.0"
+    "typescript-eslint": "^8.69.0"
   },
   "allowScripts": {
     "esbuild@0.28.2": true
