@@ -13,6 +13,9 @@ Two kinds of entry appear here:
 - **Testability defects** have no failing test. They are properties of the markup
   that force the suite into workarounds, and they are recorded because they cost
   maintenance effort on every future change.
+- **Contract defects** are properties of the service's responses rather than of
+  the interface. Each is pinned by a test in `tests/contract/`, which asserts the
+  shape as it stands today, so the entry and the assertion move together.
 
 ---
 
@@ -119,6 +122,45 @@ at the point of the mistake.
 
 **Handled by** `src/api/schemas.ts`, which validates each response against its
 own schema and normalises the difference at the boundary.
+
+---
+
+## D-6 A refused sign-in is reported as a successful request (contract, high)
+
+**Where** `POST /Account/v1/GenerateToken`.
+
+**Steps**
+
+1. Register an account.
+2. Request a token with the correct user name and a wrong password.
+
+**Expected** A status code that distinguishes refusal from success, conventionally 401.
+
+**Actual** HTTP 200, with the refusal carried in the body alone:
+
+```json
+{
+  "token": null,
+  "expires": null,
+  "status": "Failed",
+  "result": "User authorization failed."
+}
+```
+
+The accepted and refused cases share an endpoint, a status code and a body shape,
+differing only in `status` and in two fields being null.
+
+**Impact** The default way to check an HTTP call is to test the status code, and
+here that check passes for a refused password. A consumer written that way then
+stores `null` as its token and fails later, at the first authenticated request,
+with an error naming neither the cause nor the credentials that caused it. The
+severity is not the null itself but where it surfaces: one call away from the
+mistake, in code that looks correct.
+
+**Pinned by** `reports a refused sign-in at 200 with a null token`, which asserts
+the current behaviour. It fails when the service starts signalling refusal by
+status code, which is the change every consumer of this endpoint needs to hear
+about.
 
 ---
 

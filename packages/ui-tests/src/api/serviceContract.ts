@@ -20,15 +20,15 @@ import { z } from 'zod';
  * registration response, and `result` on the token response.
  */
 
-/** Strict throughout: an unknown key is drift, which is the point of the file. */
-const contractObject = <T extends z.ZodRawShape>(shape: T) => z.strictObject(shape);
+// Every object below is a `strictObject`: an unknown key is drift, and drift is
+// the whole point of the file.
 
 /**
  * The book as the catalogue and the profile both return it. `publish_date` is
  * absent from the interface entirely, which is why `schemas.ts` discards it and
  * why only this file can notice it going away.
  */
-export const bookContract = contractObject({
+export const bookContract = z.strictObject({
   isbn: z.string().min(1),
   title: z.string(),
   subTitle: z.string(),
@@ -40,7 +40,7 @@ export const bookContract = contractObject({
   website: z.string(),
 });
 
-export const catalogueContract = contractObject({
+export const catalogueContract = z.strictObject({
   books: z.array(bookContract),
 });
 
@@ -48,7 +48,7 @@ export const catalogueContract = contractObject({
  * Registration answers with an empty collection alongside the identifier.
  * The suite reads neither, so nothing else would notice it disappear.
  */
-export const registrationContract = contractObject({
+export const registrationContract = z.strictObject({
   userID: z.uuid(),
   username: z.string(),
   books: z.array(bookContract),
@@ -60,14 +60,14 @@ export const registrationContract = contractObject({
  * only by `status`. A consumer that branches on the HTTP status alone treats a
  * refused password as a successful sign-in. Recorded as D-6.
  */
-export const successfulTokenContract = contractObject({
+export const successfulTokenContract = z.strictObject({
   token: z.string().min(1),
   expires: z.iso.datetime(),
   status: z.literal('Success'),
   result: z.literal('User authorized successfully.'),
 });
 
-export const failedTokenContract = contractObject({
+export const failedTokenContract = z.strictObject({
   token: z.null(),
   expires: z.null(),
   status: z.literal('Failed'),
@@ -75,7 +75,7 @@ export const failedTokenContract = contractObject({
 });
 
 /** The read side spells the identifier `userId`; registration spells it `userID` (D-5). */
-export const userDetailContract = contractObject({
+export const userDetailContract = z.strictObject({
   userId: z.uuid(),
   username: z.string(),
   books: z.array(bookContract),
@@ -86,12 +86,12 @@ export const userDetailContract = contractObject({
  * the catalogue and the profile, but the shape behind it is a different type:
  * one name, two contracts.
  */
-export const collectionAdditionContract = contractObject({
-  books: z.array(contractObject({ isbn: z.string().min(1) })),
+export const collectionAdditionContract = z.strictObject({
+  books: z.array(z.strictObject({ isbn: z.string().min(1) })),
 });
 
 /** Every refusal shares one envelope, with the code carried as a string. */
-export const errorContract = contractObject({
+export const errorContract = z.strictObject({
   code: z.string().regex(/^\d+$/),
   message: z.string().min(1),
 });

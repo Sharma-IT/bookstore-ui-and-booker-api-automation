@@ -46,7 +46,9 @@ describe('describeIssues', () => {
 
     const descriptions = issuesFrom(schema, { books: [{ pages: 'many' }] });
 
-    expect(descriptions).toEqual(['books.0.pages: Invalid input: expected number, received string']);
+    expect(descriptions).toEqual([
+      'books.0.pages: Invalid input: expected number, received string',
+    ]);
   });
 
   // Requirement: a fault carrying no path is still reported.
