@@ -150,8 +150,14 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: packages/ui-tests
 
+      # `--grep-invert @visual` mirrors the `test:e2e` script. Screenshot
+      # baselines are per operating system, and the set committed here was
+      # recorded on Windows, so a Linux runner would fail every appearance
+      # check for a missing baseline rather than for a real difference. See
+      # "Visual regression" in the package README for the one command that
+      # records the Linux set and the two lines that then delete this flag.
       - name: Run suite
-        run: npx playwright test --shard=${{ matrix.shard }}/2
+        run: npx playwright test --grep-invert @visual --shard=${{ matrix.shard }}/2
         working-directory: packages/ui-tests
         env:
           E2E_BROWSERS: ${{ matrix.browser }}

@@ -3,8 +3,9 @@
 UI automation for the Book Store application at <https://demoqa.com/books>,
 built to run on every commit and to be read by whoever inherits it.
 
-- **35 end-to-end scenarios** across the catalogue, search, authentication and
-  collection management, plus **72 unit tests** over the pure support modules.
+- **54 end-to-end scenarios** across the catalogue, search, authentication,
+  collection management, accessibility, the service contract and appearance,
+  plus **93 unit tests** over the pure support modules.
 - **Playwright with TypeScript**, strict mode, no `any`.
 - **Runs on all three engines**: Chromium on every push, widening to Firefox and
   WebKit nightly. All 35 scenarios pass on each.
@@ -13,8 +14,8 @@ built to run on every commit and to be read by whoever inherits it.
   service so scenarios stay independent and parallel.
 - **Mutation tested** at 100% on every behavioural module, with the gate wired
   into the pipeline.
-- Five defects found and recorded in [DEFECTS.md](DEFECTS.md), two of them pinned
-  by tests that will fail the build when the application is fixed.
+- Seven defects found and recorded in [DEFECTS.md](DEFECTS.md), four of them
+  pinned by tests that will fail the build when the application is fixed.
 
 ---
 
@@ -34,6 +35,10 @@ built to run on every commit and to be read by whoever inherits it.
     - [Reliability](#reliability)
   - [Test-driven, and mutation tested](#test-driven-and-mutation-tested)
   - [Continuous delivery](#continuous-delivery)
+  - [Beyond behaviour: accessibility, contract and appearance](#beyond-behaviour-accessibility-contract-and-appearance)
+    - [Accessibility](#accessibility)
+    - [Contract](#contract)
+    - [Visual regression](#visual-regression)
   - [What I would do next](#what-i-would-do-next)
 
 ---
@@ -54,15 +59,17 @@ scripts. The table below names them.
 
 `npm run verify` needs no browser and finishes in under a minute. Run it first.
 
-| Command           | What it does                               |
-| ----------------- | ------------------------------------------ |
-| `test:e2e`        | The whole browser suite                    |
-| `test:smoke`      | The eight scenarios tagged `@smoke`        |
-| `test:e2e:ui`     | Playwright's interactive runner            |
-| `test:e2e:headed` | A visible browser, for watching a scenario |
-| `test:unit`       | Unit tests over the pure modules           |
-| `test:mutation`   | The mutation gate                          |
-| `typecheck`       | Type check this package                    |
+| Command              | What it does                                |
+| -------------------- | ------------------------------------------- |
+| `test:e2e`           | The browser suite, appearance checks aside  |
+| `test:smoke`         | The twelve scenarios tagged `@smoke`        |
+| `test:e2e:ui`        | Playwright's interactive runner             |
+| `test:e2e:headed`    | A visible browser, for watching a scenario  |
+| `test:visual`        | Appearance checks, excluded from `test:e2e` |
+| `test:visual:update` | Re-record the screenshot baselines          |
+| `test:unit`          | Unit tests over the pure modules            |
+| `test:mutation`      | The mutation gate                           |
+| `typecheck`          | Type check this package                     |
 
 Configuration comes from the environment, documented in
 [`.env.example`](.env.example). Copy it to `.env` to change anything; every
@@ -189,8 +196,6 @@ cost the business to have broken.
   test that cannot fail.
 - _The rest of demoqa.com_ — the forms, widgets and interaction demos share a
   domain with the Book Store but are unrelated to it.
-- _Visual regression_ — worth adding, but it needs a stable environment. The
-  public deployment carries live advertising slots that change on every load.
 
 **Assumptions made.** Each of these would need confirming with a product owner on
 a real engagement, and each is stated where it is relied upon.
@@ -378,16 +383,122 @@ same suite anywhere, for a pipeline that is not GitHub Actions.
 
 ---
 
+## Beyond behaviour: accessibility, contract and appearance
+
+Three checks that ask something other than "does the interface behave". Each
+runs on Chromium only, and each says why in the spec: the property under test is
+the same on every engine, so paying for it three times on the nightly run buys
+nothing and adds load to a deployment the pipeline already throttles itself
+against.
+
+### Accessibility
+
+`@axe-core/playwright` scans the four flows against WCAG 2.1 AA, through the
+page the suite already drives, so an audit costs one navigation and no second
+browser. Only the conformance tags are selected. Axe's best-practice and
+experimental rules are advice, and mixing advice into a gate turns the gate into
+an opinion.
+
+The application is somebody else's and has real gaps, so asserting zero would
+fail on the first run and stay failing, which is a gate everyone learns to
+ignore. Instead `src/accessibility/knownViolations.ts` records what is broken
+today, per page, and the scan fails on drift **in either direction**. A new rule
+failing is a regression. A recorded rule that stops failing is a stale register,
+and that also fails, so the list cannot quietly grow into something nobody
+checks. It is the same bargain the behavioural defects strike: green while the
+defect stands, red the moment it is fixed.
+
+Four rules are recorded across the four pages, and D-7 has the detail. Worth
+knowing: **these scans do not cover D-3.** Axe retired `duplicate-id` as
+obsolete in 4.x, and the surviving `duplicate-id-aria` fires only on ids that
+ARIA or a label references, which these are not. The duplicate ids are still
+real; axe simply is not the tool that finds them.
+
+### Contract
+
+`tests/contract/` asserts what the Book Store service sends, against strict
+schemas in `src/api/serviceContract.ts`. These deliberately bypass
+`ServiceGateway` and talk to the service with a bare request context, because
+the gateway exists to make the suite _tolerant_ of the service: it applies the
+narrowed schemas in `schemas.ts` and lets zod drop whatever the interface does
+not render. A contract asserted through it could only detect drift the suite
+already fails on.
+
+The two schema sets are independent restatements on purpose, and the gap between
+them is the point. `serviceContract.ts` is strict, so an added or renamed key
+fails, and it lists every field the service returns rather than the handful the
+interface reads. Three fields sit in that gap: `publish_date` on every book,
+`books` on the registration response, and `result` on the token response. None
+is rendered anywhere, so nothing else in the suite would notice any of them
+change.
+
+Asserting the failure cases is what turned up D-6, which is the highest-severity
+finding in the register: a refused sign-in comes back as **HTTP 200**, with the
+refusal carried in the body alone.
+
+### Visual regression
+
+This was parked in the original suite for a stated reason, that live ad slots
+change on every load. `@ghostery/adblocker-playwright` removes that reason. It
+is not a screenshot tool and does no comparison; it blocks the advertising and
+analytics requests and collapses the slots, and Playwright's own
+`toHaveScreenshot` does the comparing. The filters are a small local list in
+`src/fixtures/thirdPartyFilters.ts` rather than one of Ghostery's prebuilt
+lists, which are fetched from a CDN at run time and would let a passing run
+change definition without a commit.
+
+What stays variable is masked rather than tolerated. A threshold wide enough to
+absorb a generated user name is wide enough to miss a moved control, so the user
+name is painted over and the rest of the frame is compared strictly.
+`maxDiffPixelRatio` is set for antialiasing, not for content.
+
+Captures wait on a settled page: ad slots collapsed, fonts loaded, images
+complete. `toHaveScreenshot` retries until two consecutive captures agree, but
+agreement is not readiness, and two captures taken before the blocker's CSS
+lands agree with each other while disagreeing with the baseline. Waiting on the
+conditions themselves is what took the suite from one failure in six runs to six
+clean runs in six.
+
+**Screenshot baselines are per operating system**, because font rasterisation
+differs, and the set committed here was recorded on Windows. The pipeline runs
+on Linux, so the appearance checks are excluded from the default gate by
+`--grep-invert @visual` in both the `test:e2e` script and the workflow. They are
+not half-finished: they pass, they fail on a nine-pixel shift, and they run on
+demand.
+
+To bring them into the gate, record a Linux set once, on the same Playwright
+version the pipeline pins, commit it beside the Windows set, and then delete
+`--grep-invert @visual` from the `test:e2e` script and from the `Run suite` step
+in the workflow. Playwright names baselines by platform, so the two sets sit
+side by side and neither disturbs the other.
+
+Two routes. Run `playwright test --grep @visual --update-snapshots` inside
+`mcr.microsoft.com/playwright:v1.62.1-noble`, installing dependencies **inside**
+the container rather than mounting a host `node_modules`, which carries
+platform-specific binaries and browsers that will not run there. Or add a
+one-off `workflow_dispatch` job that runs the same command on the existing
+Ubuntu runner and uploads the `-snapshots` directory as an artifact to commit.
+
+Neither invocation is written out here because neither was executed: Docker was
+not available on the machine this was built on, and publishing a command nobody
+has run is how untested instructions get into a README. The requirement is
+exact; the incantation is for whoever has a Linux runner in front of them.
+
+---
+
 ## What I would do next
 
 - **Confirm assumption 3 with a product owner.** D-2 is either a high-severity
   defect or an intentional design decision, and which one it is changes what
   should happen next.
-- **Accessibility checks.** `@axe-core/playwright` over each page. The duplicate
-  ids in D-3 suggest there is more to find.
-- **Visual regression**, once there is an environment without live ad slots.
-- **A contract test against the service**, so a change in a response shape is
-  caught before it surfaces as a puzzling interface failure. The schemas in
-  `src/api/schemas.ts` are already most of the work.
+- **Record the Linux screenshot baselines**, so the appearance checks join the
+  default gate instead of being excluded from it. The one command, and the two
+  lines it lets you delete, are in [Visual regression](#visual-regression) below.
+- **Fix the Dockerfile.** It copies `package-lock.json` from this package, and
+  the only lockfile is at the workspace root, so `docker build` cannot succeed
+  as written. The build context needs to be the repository root. Worth doing on
+  its own account, and it is also the route to the Linux baselines above.
+- **Extend the contract tests to response headers**, in particular the
+  content-type and cache headers the interface relies on and nothing asserts.
 - **Publish the mutation and test reports** to somewhere durable, so the trend is
   visible rather than only the current run.

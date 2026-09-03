@@ -14,7 +14,23 @@ export default defineConfig({
   testDir: './tests',
   outputDir: './test-results',
   timeout: environment.testTimeoutMs,
-  expect: { timeout: environment.expectTimeoutMs },
+  expect: {
+    timeout: environment.expectTimeoutMs,
+    toHaveScreenshot: {
+      // Antialiasing differs by a pixel or two between runs on the same engine,
+      // so a strict comparison reports a difference nobody can see or act on.
+      // One per cent of the frame absorbs that and still fails on a moved
+      // control, a changed colour or a dropped element.
+      maxDiffPixelRatio: 0.01,
+      // Both remove a source of difference that has nothing to do with layout:
+      // an animation caught mid-frame, and a blinking caret in a focused field.
+      animations: 'disabled',
+      caret: 'hide',
+      // Comparisons are in CSS pixels, so a run on a high-density display
+      // produces the same image as one on an ordinary display.
+      scale: 'css',
+    },
+  },
 
   // Each spec owns the data it creates, so the whole suite runs in parallel.
   fullyParallel: true,

@@ -5,10 +5,12 @@
   "type": "module",
   "description": "UI automation for the DemoQA Book Store application",
   "scripts": {
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --grep-invert @visual",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:smoke": "playwright test --grep @smoke",
+    "test:visual": "playwright test --grep @visual",
+    "test:visual:update": "playwright test --grep @visual --update-snapshots",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:mutation": "stryker run",

@@ -80,6 +80,20 @@ test.skip(
   'The service contract is browser independent, so it is asserted once.',
 );
 
+/**
+ * Sequential within this file, while the suite stays parallel across files.
+ *
+ * Seven of these tests register their own account, and the config runs the
+ * suite fully parallel, so left alone this file asks the service for seven
+ * registrations and seven tokens at once. That is the load the pipeline already
+ * caps its browser matrix to avoid: the deployment answers account creation in
+ * three to eight seconds and degrades sharply beyond a handful of concurrent
+ * sessions, and running this file alongside the collection specs produced
+ * exactly that failure. Each test still seeds and destroys its own account, so
+ * they remain independent and order-insensitive; only the fan-out changes.
+ */
+test.describe.configure({ mode: 'default' });
+
 test.describe('Book Store service contract', () => {
   // Requirement: the catalogue answers with every field the service holds.
   // Case: happy-path

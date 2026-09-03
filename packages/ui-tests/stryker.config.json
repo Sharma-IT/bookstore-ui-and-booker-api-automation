@@ -16,6 +16,7 @@
     "src/config/**/*.ts",
     "src/validation/**/*.ts",
     "src/accessibility/**/*.ts",
+    "src/fixtures/thirdPartyFilters.ts",
     "!src/**/*.spec.ts"
   ],
   "ignorePatterns": ["node_modules", "playwright-report", "blob-report", "reports", "test-results"],

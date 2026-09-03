@@ -15,6 +15,7 @@ export default defineConfig({
         'src/config/**/*.ts',
         'src/validation/**/*.ts',
         'src/accessibility/**/*.ts',
+        'src/fixtures/thirdPartyFilters.ts',
       ],
       exclude: ['**/*.spec.ts'],
     },
