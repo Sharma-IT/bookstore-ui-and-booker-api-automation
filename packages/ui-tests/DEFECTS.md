@@ -16,6 +16,9 @@ Two kinds of entry appear here:
 - **Contract defects** are properties of the service's responses rather than of
   the interface. Each is pinned by a test in `tests/contract/`, which asserts the
   shape as it stands today, so the entry and the assertion move together.
+- **Accessibility defects** are pinned the same way, by a recorded baseline that
+  the scans compare against and that fails the build when it drifts in either
+  direction.
 
 ---
 
@@ -161,6 +164,46 @@ mistake, in code that looks correct.
 the current behaviour. It fails when the service starts signalling refusal by
 status code, which is the change every consumer of this endpoint needs to hear
 about.
+
+---
+
+## D-7 The site banner is unreachable by assistive technology (accessibility, high)
+
+**Where** Every page. Reproduced on `/books`, `/books?search=<isbn>`, `/login`
+and `/profile`.
+
+**Detail** Scanned with axe-core against WCAG 2.1 AA, with third-party
+advertising blocked so every finding below is the application's own markup:
+
+| Page                   | Rules failed                                              |
+| ---------------------- | --------------------------------------------------------- |
+| `/books`               | `button-name`, `color-contrast`, `image-alt`, `link-name` |
+| `/books?search=<isbn>` | `color-contrast`, `image-alt`, `link-name`                |
+| `/login`               | `image-alt`, `link-name`                                  |
+| `/profile`             | `button-name`, `image-alt`, `link-name`                   |
+
+`image-alt` and `link-name` appear on all four. Both are the site banner: the
+image carries no alternative text, and the link wrapping it has no discernible
+text either. It is the first thing in the tab order on every page, and it
+announces nothing.
+
+`button-name` is the collapsed-navigation toggle, which has no accessible name.
+`color-contrast` is the book title links in the grid, which fall below 4.5:1.
+
+**Impact** A screen reader user meets an unlabelled link before any content, on
+every page. The two rules that appear everywhere are also the cheapest to fix:
+an `alt` attribute and link text.
+
+**Pinned by** `tests/accessibility/accessibility.spec.ts`, which records these
+per page in `src/accessibility/knownViolations.ts` and fails on drift in either
+direction. A new failure fails the build as a regression; a recorded failure
+that stops occurring also fails the build, so the register cannot outlive the
+defects.
+
+**Not covered** These scans do not detect D-3. axe-core retired `duplicate-id`
+and `duplicate-id-active` as obsolete in 4.x, and the surviving
+`duplicate-id-aria` fires only on ids referenced by ARIA or a label, which these
+are not.
 
 ---
 

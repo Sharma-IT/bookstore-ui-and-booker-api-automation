@@ -10,7 +10,12 @@ export default defineConfig({
     outputFile: { junit: 'reports/unit-junit.xml' },
     coverage: {
       provider: 'v8',
-      include: ['src/data/**/*.ts', 'src/config/**/*.ts', 'src/validation/**/*.ts'],
+      include: [
+        'src/data/**/*.ts',
+        'src/config/**/*.ts',
+        'src/validation/**/*.ts',
+        'src/accessibility/**/*.ts',
+      ],
       exclude: ['**/*.spec.ts'],
     },
   },
