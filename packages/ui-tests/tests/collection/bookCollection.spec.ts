@@ -1,9 +1,29 @@
 import { bookByIsbn, titlesOf } from '../../src/data/catalogue.js';
 import { COLLECTION_GRID_COLUMNS } from '../../src/pages/ProfilePage.js';
+import type { TestInfo } from '@playwright/test';
+
 import { expect, test } from '../../src/fixtures/test.js';
 
 const A_BOOK = '9781449325862';
 const ANOTHER_BOOK = '9781449331818';
+
+/**
+ * How long a test that pins a defect waits for the behaviour the application
+ * owes the reader, before concluding it never arrives.
+ */
+const DEFECT_SETTLE_MS = 5_000;
+
+/**
+ * Playwright accepts a `test.fail()` test only when it fails an assertion. One
+ * whose budget runs out first is reported as a timeout instead, which is not
+ * the expected status, and the run goes red on a defect already known and
+ * recorded. A settle window is spent by design rather than on a slow response,
+ * so it is granted on top of the ordinary budget: a slow page load can then no
+ * longer be what tips a pinned defect over.
+ */
+const budgetForSettling = (testInfo: TestInfo, windows: number): void => {
+  test.setTimeout(testInfo.timeout + windows * DEFECT_SETTLE_MS);
+};
 
 test.describe('Building a collection', () => {
   // Requirement: a signed-in reader adds a book from its detail page and finds
@@ -147,8 +167,9 @@ test.describe('Managing a collection', () => {
   // client is stale. Remove this annotation when the application is fixed.
   // Case: happy-path
   // Invariant: the view reflects the collection immediately after the action.
-  test('refreshes the view after emptying the collection', async ({ profilePage }) => {
+  test('refreshes the view after emptying the collection', async ({ profilePage }, testInfo) => {
     test.fail();
+    budgetForSettling(testInfo, 2);
 
     await profilePage.goto();
     await expect(profilePage.rows).toHaveCount(2);
@@ -156,8 +177,10 @@ test.describe('Managing a collection', () => {
     await profilePage.deleteAllBooksButton.click();
     await profilePage.confirmationModal.confirm();
 
-    await expect(profilePage.confirmationModal.okButton).toBeHidden({ timeout: 5_000 });
-    await expect(profilePage.rows).toHaveCount(0, { timeout: 5_000 });
+    await expect(profilePage.confirmationModal.okButton).toBeHidden({
+      timeout: DEFECT_SETTLE_MS,
+    });
+    await expect(profilePage.rows).toHaveCount(0, { timeout: DEFECT_SETTLE_MS });
   });
 
   // Requirement: the collection has its own search.
@@ -236,8 +259,9 @@ test.describe('Closing an account', () => {
   // fixed.
   // Case: error
   // Invariant: no session survives the account it belongs to.
-  test('ends the session when the account is deleted', async ({ page, profilePage }) => {
+  test('ends the session when the account is deleted', async ({ page, profilePage }, testInfo) => {
     test.fail();
+    budgetForSettling(testInfo, 1);
 
     await profilePage.goto();
     await profilePage.deleteAccountButton.click();
@@ -245,7 +269,7 @@ test.describe('Closing an account', () => {
 
     await expect
       .poll(async () => (await page.context().cookies()).map((cookie) => cookie.name), {
-        timeout: 5_000,
+        timeout: DEFECT_SETTLE_MS,
       })
       .not.toContain('token');
   });
