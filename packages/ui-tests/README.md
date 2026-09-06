@@ -5,7 +5,7 @@ built to run on every commit and to be read by whoever inherits it.
 
 - **54 end-to-end scenarios** across the catalogue, search, authentication,
   collection management, accessibility, the service contract and appearance,
-  plus **93 unit tests** over the pure support modules.
+  plus **102 unit tests** over the pure support modules.
 - **Playwright with TypeScript**, strict mode, no `any`.
 - **Runs on all three engines**: Chromium on every push, widening to Firefox and
   WebKit on the weekly scheduled run. All 35 scenarios pass on each.
