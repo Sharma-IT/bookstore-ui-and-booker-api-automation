@@ -141,8 +141,8 @@ round trip; the fix was a separate, correctly named budget, not a bigger number.
 **verify** covers types, lint, format, both unit suites and both mutation gates,
 with no browser and under a minute. **api** runs Task 2, installing no browsers
 at all. **e2e** runs Task 1 sharded two ways, Chromium on pull requests and all
-three engines nightly. **report** merges the shards' blob reports into one HTML
-report and one JUnit file.
+three engines on the weekly scheduled run. **report** merges the shards' blob
+reports into one HTML report and one JUnit file.
 
 `workflow_dispatch` takes a base URL for each service and a browser list, so
 both suites run against any deployed environment with no code change. That is

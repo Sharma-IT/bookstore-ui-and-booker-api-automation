@@ -5,9 +5,13 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    # A nightly full run against the deployed environments, which catches drift
-    # in either application that no commit of ours would have triggered.
-    - cron: '0 2 * * *'
+    # A weekly full run against the deployed environments, which catches drift
+    # in either application that no commit of ours would have triggered. Weekly
+    # rather than nightly because this is a demonstration project: drift in a
+    # third-party demo deployment is worth catching, and catching it seven
+    # times a week tells us nothing the first run did not, while putting the
+    # whole browser matrix through a shared free service every night.
+    - cron: '0 2 * * 1'
   workflow_dispatch:
     inputs:
       uiBaseUrl:
@@ -149,15 +153,15 @@ jobs:
     strategy:
       fail-fast: false
       # Both applications are single shared free deployments. Running all six
-      # nightly jobs at once put roughly eighteen concurrent sessions through
+      # scheduled jobs at once put roughly eighteen concurrent sessions through
       # DemoQA, which pushed authentication past thirteen seconds and page
       # loads past forty-five, so the suite was failing on load it generated
       # itself. Two jobs at a time keeps the fan-out below what the service
-      # answers reliably. The cap costs wall-clock on a nightly run and buys a
+      # answers reliably. The cap costs wall-clock on the weekly run and buys a
       # result that measures the application rather than our own traffic.
       max-parallel: 2
       matrix:
-        # The nightly run widens to every engine the application supports; a
+        # The weekly run widens to every engine the application supports; a
         # pull request pays only for Chromium.
         browser: ${{ fromJSON(github.event_name == 'schedule' && '["chromium","firefox","webkit"]' || '["chromium"]') }}
         shard: [1, 2]

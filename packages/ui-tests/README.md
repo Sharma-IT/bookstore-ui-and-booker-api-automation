@@ -8,7 +8,7 @@ built to run on every commit and to be read by whoever inherits it.
   plus **93 unit tests** over the pure support modules.
 - **Playwright with TypeScript**, strict mode, no `any`.
 - **Runs on all three engines**: Chromium on every push, widening to Firefox and
-  WebKit nightly. All 35 scenarios pass on each.
+  WebKit on the weekly scheduled run. All 35 scenarios pass on each.
 - **Page Object Model** for the interface, **fixtures as dependency injection**
   for wiring, and **test data builders** for data, with state seeded through the
   service so scenarios stay independent and parallel.
@@ -350,7 +350,7 @@ produces.
    under a minute. A typo or a weakened test fails here rather than after the
    full run.
 2. **e2e** — the browser suite, sharded two ways. Pull requests pay for Chromium;
-   the nightly run widens to Firefox and WebKit.
+   the weekly scheduled run widens to Firefox and WebKit.
 3. **report** — merges the shards' blob reports into one HTML report and one JUnit
    file, published to the run's checks.
 
@@ -359,13 +359,13 @@ against any deployed environment without a code change. That is the point of
 parsing configuration at a boundary rather than hard coding it.
 
 **All three engines pass, and the constraint is the service rather than the
-browsers.** The first nightly run failed on Chromium, Firefox and WebKit alike.
-None of it was a rendering difference. Six jobs starting at once put roughly
-eighteen concurrent sessions through a single free deployment, which pushed
-authentication from under two seconds to nearly thirteen and some page loads
-past forty-five, so the suite was failing on load it generated itself. Run one
-engine at a time, the whole suite passes on each: Chromium 35 of 35, Firefox 35
-of 35, WebKit clean. The nightly matrix is therefore capped at two concurrent
+browsers.** The first full-matrix run failed on Chromium, Firefox and WebKit
+alike. None of it was a rendering difference. Six jobs starting at once put
+roughly eighteen concurrent sessions through a single free deployment, which
+pushed authentication from under two seconds to nearly thirteen and some page
+loads past forty-five, so the suite was failing on load it generated itself.
+Run one engine at a time, the whole suite passes on each: Chromium 35 of 35,
+Firefox 35 of 35, WebKit clean. The scheduled matrix is therefore capped at two concurrent
 jobs, which is four sessions on GitHub's four-core runners, and `signIn` waits
 for the authentication response rather than letting an assertion race it.
 
@@ -396,7 +396,7 @@ pipeline rather than trusted to still work.
 
 Three checks that ask something other than "does the interface behave". Each
 runs on Chromium only, and each says why in the spec: the property under test is
-the same on every engine, so paying for it three times on the nightly run buys
+the same on every engine, so paying for it three times on the scheduled run buys
 nothing and adds load to a deployment the pipeline already throttles itself
 against.
 
