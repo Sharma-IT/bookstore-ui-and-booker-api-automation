@@ -131,6 +131,11 @@ the one case incremental mode cannot reason about.
 question is whether the regression is real or the measurement is wrong. Two
 timeout failures in Task 1 turned out to be a click budget applied to a network
 round trip; the fix was a separate, correctly named budget, not a bigger number.
+The same shape recurred in navigation, which had been handed the whole test
+budget. A page that never loaded therefore exhausted the test at the same
+moment, and the failure arrived as a bare test timeout rather than as a page
+that did not load. Navigation now carries its own budget, which the parser
+holds below the test's.
 
 ---
 

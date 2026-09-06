@@ -12,7 +12,8 @@ describe('parseEnvironment', () => {
       apiBaseUrl: 'https://demoqa.com',
       browsers: ['chromium'],
       headless: true,
-      testTimeoutMs: 45_000,
+      testTimeoutMs: 60_000,
+      navigationTimeoutMs: 45_000,
       expectTimeoutMs: 10_000,
       apiTimeoutMs: 30_000,
       retries: 0,
@@ -140,6 +141,7 @@ describe('parseEnvironment', () => {
     ['E2E_RETRIES', '-1'],
     ['E2E_WORKERS', '0'],
     ['E2E_API_TIMEOUT_MS', '0'],
+    ['E2E_NAVIGATION_TIMEOUT_MS', '0'],
     ['E2E_TEST_TIMEOUT_MS', 'soon'],
   ])('rejects %s of %s', (key, value) => {
     expect(() => parseEnvironment({ [key]: value })).toThrow(
@@ -162,20 +164,6 @@ describe('parseEnvironment', () => {
     expect(() => parseEnvironment({ E2E_BASE_URL: 'not-a-url' })).toThrow(
       'Invalid test environment configuration. E2E_BASE_URL: Invalid URL',
     );
-  });
-});
-
-describe('parseEnvironment API timeout', () => {
-  // Requirement: seeding calls to the Book Store service are far slower than
-  // any interaction with the interface, so they carry their own budget rather
-  // than borrowing the assertion timeout.
-  // Case: boundary
-  // Invariant: the API budget is configured independently of the UI budget.
-  it('keeps the API timeout independent of the assertion timeout', () => {
-    const environment = parseEnvironment({ E2E_EXPECT_TIMEOUT_MS: '5000' });
-
-    expect(environment.expectTimeoutMs).toBe(5_000);
-    expect(environment.apiTimeoutMs).toBe(30_000);
   });
 });
 

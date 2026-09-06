@@ -54,7 +54,11 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     actionTimeout: environment.expectTimeoutMs,
-    navigationTimeout: environment.testTimeoutMs,
+    // Its own budget, and strictly below the test's. Sharing the test's meant a
+    // navigation that used its whole allowance exhausted the test at the same
+    // moment, so a page that never loaded arrived as a bare test timeout with
+    // nothing left for the assertions that would have said what was wrong.
+    navigationTimeout: environment.navigationTimeoutMs,
     testIdAttribute: 'data-testid',
   },
 
