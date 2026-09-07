@@ -137,21 +137,27 @@ moment, and the failure arrived as a bare test timeout rather than as a page
 that did not load. Navigation now carries its own budget, which the parser
 holds below the test's.
 
-**TypeScript stays on 5, and the reason is measured rather than assumed.**
-TypeScript 7 is the native port, and its npm package no longer exports the
-JavaScript compiler API: the package entry point exports `version` and
-`versionMajorMinor` and nothing else, with the compiler reachable only through
-`unstable/*` subpaths over a Go binary. Every tool here that reads TypeScript through that API
-therefore stops working. Linting fails outright, because typescript-eslint
-refuses to load against TS 7 and its support depends on asynchronous parser
-support that ESLint does not yet have. Both mutation gates fail too, on the
-same root cause, when Stryker reaches for `parseConfigFileTextToJson`. What the
-upgrade buys, measured on this repository, is a typecheck of roughly 3.3
-seconds against 8.6. Five seconds a run does not pay for the lint gate and both
-mutation gates, and the documented workaround, a beta TypeScript 6 installed
-side by side for the tools to read, puts a prerelease compiler underneath the
-checks that are supposed to catch prerelease behaviour. It moves when
-typescript-eslint and Stryker support the native port.
+**A package held behind its current major says why here, and the why is
+measured.** TypeScript stays on 5. TypeScript 7 is the native port, and its npm
+package no longer exports the JavaScript compiler API: the entry point exports
+`version` and `versionMajorMinor` and nothing else, with the compiler reachable
+only through `unstable/*` subpaths over a Go binary. Every tool here that reads
+TypeScript through that API therefore stops working. Linting fails outright,
+because typescript-eslint refuses to load against TS 7 and its support depends
+on asynchronous parser support that ESLint does not yet have. Both mutation
+gates fail too, on the same root cause, when Stryker reaches for
+`parseConfigFileTextToJson`. What the upgrade buys, measured on this
+repository, is a typecheck of roughly 3.3 seconds against 8.6. Five seconds a
+run does not pay for the lint gate and both mutation gates, and the documented
+workaround, a beta TypeScript 6 installed side by side for the tools to read,
+puts a prerelease compiler underneath the checks that are supposed to catch
+prerelease behaviour. It moves when typescript-eslint and Stryker support the
+native port.
+
+`@types/node` stays on 24 for a plainer reason. A types package describes the
+runtime the code runs on rather than tracking its own newest release, and every
+job in the pipeline pins Node 24, so 26 would describe APIs that are not there.
+It moves when the pipeline moves.
 
 ---
 
