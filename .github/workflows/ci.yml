@@ -23,9 +23,18 @@ on:
         required: false
         default: 'https://restful-booker.herokuapp.com'
       browsers:
-        description: 'Comma separated: chromium, firefox, webkit'
+        description: 'Engine to run, or all three'
         required: false
-        default: 'chromium'
+        # A fixed list rather than free text, so a dispatch cannot ask for an
+        # engine the application has no project for, or spell one wrongly and
+        # get a run that quietly tests nothing.
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+          - all
+        default: chromium
       recordVisualBaselines:
         description: 'Re-record the screenshot baselines and upload them as an artifact'
         required: false
@@ -161,9 +170,10 @@ jobs:
       # result that measures the application rather than our own traffic.
       max-parallel: 2
       matrix:
-        # The weekly run widens to every engine the application supports; a
-        # pull request pays only for Chromium.
-        browser: ${{ fromJSON(github.event_name == 'schedule' && '["chromium","firefox","webkit"]' || '["chromium"]') }}
+        # A dispatch runs whatever was asked for, the weekly run widens to
+        # every engine the application supports, and everything else pays for
+        # Chromium alone.
+        browser: ${{ fromJSON((inputs.browsers == 'all' || github.event_name == 'schedule') && '["chromium","firefox","webkit"]' || inputs.browsers && format('["{0}"]', inputs.browsers) || '["chromium"]') }}
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
