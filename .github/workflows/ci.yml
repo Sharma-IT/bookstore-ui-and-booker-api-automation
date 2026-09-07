@@ -188,6 +188,15 @@ jobs:
         working-directory: packages/ui-tests
         env:
           E2E_BROWSERS: ${{ matrix.browser }}
+          # The blob report's default file name is a hash of the command line
+          # plus the shard index, and this matrix chooses the browser through
+          # the environment rather than the command line, so all three engines
+          # write the same name for a given shard. The report job downloads the
+          # six artifacts with `merge-multiple`, which flattens them into one
+          # directory, and there the three same-shard names collide: the merge
+          # read a truncated archive and the scheduled run failed. Naming the
+          # file for the job that produced it keeps all six.
+          PLAYWRIGHT_BLOB_OUTPUT_NAME: report-${{ matrix.browser }}-${{ matrix.shard }}.zip
 
       - if: always()
         uses: actions/upload-artifact@v7
