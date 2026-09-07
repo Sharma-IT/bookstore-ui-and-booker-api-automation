@@ -2,12 +2,13 @@
 
 Two test suites in one npm workspaces monorepo.
 
-| Package                                    | Task                                              | Scenarios           |
-| ------------------------------------------ | ------------------------------------------------- | ------------------- |
-| [`packages/ui-tests`](packages/ui-tests)   | **Task 1** — DemoQA Book Store UI, Playwright     | 35 browser, 72 unit |
-| [`packages/api-tests`](packages/api-tests) | **Task 2** — Restful Booker API, pactum on Vitest | 72 API, 52 unit     |
+| Package                                    | Task                                              | Scenarios            |
+| ------------------------------------------ | ------------------------------------------------- | -------------------- |
+| [`packages/ui-tests`](packages/ui-tests)   | **Task 1** — DemoQA Book Store UI, Playwright     | 36 browser, 102 unit |
+| [`packages/api-tests`](packages/api-tests) | **Task 2** — Restful Booker API, pactum on Vitest | 72 API, 52 unit      |
 
-**231 tests. 284 mutants, all killed. 15 defects found across the two services**,
+**262 tests. 326 mutants, all killed bar one documented equivalent. 15 defects
+found across the two services**,
 each pinned by a test that will fail the build when the service is fixed.
 
 Each package has its own README covering its design, scope and trade-offs, and
@@ -248,7 +249,8 @@ apply it, because inspection is what plausible-looking generated code is best at
 defeating.
 
 - Every line of production logic traces to a test that failed before it existed.
-- The mutation gate passes at 100%, 155 mutants, no suppressions.
+- The mutation gate passes at 100% across both suites, 325 mutants killed and one
+  documented equivalent suppressed.
 - `tsc`, ESLint and Prettier pass clean, with no `any`.
 - No fixed waits anywhere, enforced by `playwright/no-wait-for-timeout` as an
   error rather than by convention.

@@ -3,12 +3,12 @@
 UI automation for the Book Store application at <https://demoqa.com/books>,
 built to run on every commit and to be read by whoever inherits it.
 
-- **54 end-to-end scenarios** across the catalogue, search, authentication,
-  collection management, accessibility, the service contract and appearance,
-  plus **102 unit tests** over the pure support modules.
+- **55 end-to-end scenarios** across the catalogue, search, authentication,
+  collection management, navigation, accessibility, the service contract and
+  appearance, plus **102 unit tests** over the pure support modules.
 - **Playwright with TypeScript**, strict mode, no `any`.
 - **Runs on all three engines**: Chromium on every push, widening to Firefox and
-  WebKit on the weekly scheduled run. All 35 scenarios pass on each.
+  WebKit on the weekly scheduled run. All 36 scenarios pass on each.
 - **Page Object Model** for the interface, **fixtures as dependency injection**
   for wiring, and **test data builders** for data, with state seeded through the
   service so scenarios stay independent and parallel.
@@ -185,6 +185,9 @@ cost the business to have broken.
   add control being withheld from an anonymous visitor, removing one book both
   confirmed and cancelled, emptying the collection, searching within it,
   navigating back to the store, and deleting the account.
+- _Navigation_ (1) — the catalogue is reachable while the advertising hosts the
+  pages carry never answer, so a run reports the application rather than an ad
+  network having a bad day.
 
 **Deliberately not covered, and why.**
 
@@ -316,17 +319,23 @@ constrains. Coverage says a line ran; a mutation score says a defect in it would
 be caught.
 
 ```
-File                | % score | # killed | # survived
---------------------|---------|----------|-----------
-alphabet.ts         |  100.00 |        7 |          0
-catalogue.ts        |  100.00 |       20 |          0
-environment.ts      |  100.00 |       46 |          0
-passwordPolicy.ts   |  100.00 |       49 |          0
-testAccount.ts      |  100.00 |       33 |          0
-All files           |  100.00 |      155 |          0
+File                 | % score | # killed | # survived
+---------------------|---------|----------|-----------
+alphabet.ts          |  100.00 |        7 |          0
+baseline.ts          |  100.00 |       12 |          0
+catalogue.ts         |  100.00 |       20 |          0
+environment.ts       |  100.00 |       62 |          0
+issueDescriptions.ts |  100.00 |        7 |          0
+passwordPolicy.ts    |  100.00 |       49 |          0
+testAccount.ts       |  100.00 |       33 |          0
+thirdPartyFilters.ts |  100.00 |        7 |          0
+All files            |  100.00 |      197 |          0
 ```
 
-155 mutants, none surviving, and no suppressions. The build fails below 90%.
+197 mutants and none surviving. One further mutant is suppressed, in the
+environment parser, where zod's contract requires an issue discriminator that
+nothing downstream reads: the equivalence is argued at the suppression point
+rather than asserted here. The build fails below 90%.
 
 It paid for itself three times while this was written. It found a config parser
 that never exercised its own multi-fault message; it found a `.replace(/\/+$/)`
