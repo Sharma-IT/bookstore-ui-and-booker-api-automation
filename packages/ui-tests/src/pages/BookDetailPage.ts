@@ -41,7 +41,7 @@ export class BookDetailPage extends BasePage {
   }
 
   async gotoBook(isbn: string): Promise<void> {
-    await this.page.goto(`/books?search=${isbn}`);
+    await this.navigate(`/books?search=${isbn}`);
   }
 
   value(field: BookDetailField): Locator {
